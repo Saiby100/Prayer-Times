@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@drawable/gradient_background"
-    android:paddingHorizontal="25dp">
+    android:paddingHorizontal="32dp">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -13,6 +13,7 @@
         android:orientation="vertical"
         android:background="@drawable/card_background"
         android:paddingTop="20dp"
+        android:maxHeight="590dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -25,13 +26,23 @@
             android:text="@string/area_prompt"
             android:textSize="24sp"
             android:layout_marginBottom="35dp"
-            android:textStyle="bold"/>
+            android:fontFamily="@font/inter_semi_bold"/>
 
         <ScrollView
-            android:id="@+id/areaLayout"
             android:layout_width="match_parent"
             android:minHeight="150dp"
-            android:layout_height="wrap_content">
+            android:layout_height="wrap_content"
+            android:paddingHorizontal="10dp"
+            android:paddingBottom="10dp">
+
+            <LinearLayout
+                android:id="@+id/areaLayout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+            </LinearLayout>
+
 
         </ScrollView>
 

@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">Prayer-Times</string>
+    <string name="area_prompt">Select Area</string>
 </resources>
