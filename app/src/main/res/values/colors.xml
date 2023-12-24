@@ -12,4 +12,6 @@
     <color name="theme_g2">#9E00FF</color>
     <color name="theme_primary">#FFFFFFFF</color>
     <color name="theme_list_item">#EEEEEF</color>
+    <color name="text_color_light">#5D5B5B</color>
+    <color name="text_color_dark">#5E5B5B</color>
 </resources>
