@@ -3,16 +3,23 @@ package com.app.prayer_times
 import android.content.Context
 import android.content.SharedPreferences
 import android.os.Bundle
+import android.widget.Button
 import android.widget.LinearLayout
 import android.widget.TextView
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.core.content.ContextCompat
 import androidx.core.content.res.ResourcesCompat
 import com.app.prayer_times.data.PTScraper
 import com.app.prayer_times.ui.theme.PrayerTimesTheme
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class MainActivity : ComponentActivity() {
 
@@ -44,18 +51,23 @@ class MainActivity : ComponentActivity() {
 
     private fun initAreaLayout() {
         val linearLayout = findViewById<LinearLayout>(R.id.areaLayout)
-//        val areaStrings: Array<String>? = PTScraper.getAreaTitles()
-        val areaStrings: Array<String>? = arrayOf("Cape Town", "Town 2", "Town 3", "Town 4", "Town 5", "Town 6", "Town 7")
-
-        if (areaStrings != null) {
-            for (area in areaStrings) {
-                linearLayout.addView(createListItem(area, false))
+        CoroutineScope(Dispatchers.Main).launch {
+            try {
+                val areaStrings: Array<String>? = withContext(Dispatchers.IO) { PTScraper.getAreaTitles() }
+                if (areaStrings != null) {
+                    for (area in areaStrings) {
+                        linearLayout.addView(createListItem(area, false))
+                    }
+                }
+            } catch (e: Exception) {
+                Toast.makeText(this@MainActivity, "Failed to fetch areas: $e", Toast.LENGTH_SHORT)
+                    .show()
             }
         }
     }
 
-    private fun createListItem(text: String, highlighted: Boolean): TextView {
-        val textView = TextView(this)
+    private fun createListItem(text: String, highlighted: Boolean): Button {
+        val button = Button(this)
 
         val layoutParams = LinearLayout.LayoutParams(
             LinearLayout.LayoutParams.MATCH_PARENT,
@@ -63,20 +75,25 @@ class MainActivity : ComponentActivity() {
         )
         layoutParams.setMargins(0, 0, 0, 5)
 
-        textView.layoutParams = layoutParams
-        textView.text = text
-        textView.textAlignment = TextView.TEXT_ALIGNMENT_CENTER
-        textView.textSize = 16f
-        textView.typeface = ResourcesCompat.getFont(this, R.font.inter_medium)
-        textView.setPadding(0, 15, 0, 15)
+        button.layoutParams = layoutParams
+        button.text = text
+        button.textAlignment = Button.TEXT_ALIGNMENT_CENTER
+        button.textSize = 16f
+        button.typeface = ResourcesCompat.getFont(this, R.font.inter_medium)
+        button.setTextColor(ContextCompat.getColor(this, R.color.text_color_light))
+        button.setPadding(0, 13, 0, 13)
+        button.elevation = 0f
+        button.stateListAnimator = null
+        button.isAllCaps = false
+
         if (!highlighted) {
-            textView.background = resources.getDrawable(R.drawable.list_item_background)
+            button.background = resources.getDrawable(R.drawable.list_item_background)
         } else {
             //TODO: Change to highlighted drawable
-            textView.background = resources.getDrawable(R.drawable.list_item_background)
+            button.background = resources.getDrawable(R.drawable.list_item_background)
         }
 
-        return textView
+        return button
     }
 }
 
