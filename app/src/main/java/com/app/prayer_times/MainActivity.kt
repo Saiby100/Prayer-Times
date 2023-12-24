@@ -31,11 +31,11 @@ class MainActivity : ComponentActivity() {
         val area = getSetting("user_area")
 
         if (area == null) {
-            setContentView(R.layout.select_area_layout)
-            initAreaLayout()
+            setContentView(R.layout.day_layout)
+//            initAreaLayout()
         } else {
-            setContentView(R.layout.select_area_layout)
-            initAreaLayout()
+            setContentView(R.layout.day_layout)
+//            initAreaLayout()
         }
     }
 
@@ -55,8 +55,13 @@ class MainActivity : ComponentActivity() {
             try {
                 val areaStrings: Array<String>? = withContext(Dispatchers.IO) { PTScraper.getAreaTitles() }
                 if (areaStrings != null) {
+                    var button: Button
                     for (area in areaStrings) {
-                        linearLayout.addView(createListItem(area, false))
+                        button = createListItem(area, false)
+                        button.setOnClickListener {
+                            handleAreaSelected(button.text.toString())
+                        }
+                        linearLayout.addView(button)
                     }
                 }
             } catch (e: Exception) {
@@ -94,6 +99,11 @@ class MainActivity : ComponentActivity() {
         }
 
         return button
+    }
+
+    fun handleAreaSelected(areaString: String) {
+        //TODO: Save area to memory
+        PTScraper.setArea(areaString)
     }
 }
 
