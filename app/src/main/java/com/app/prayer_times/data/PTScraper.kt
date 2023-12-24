@@ -4,17 +4,18 @@ import kotlinx.coroutines.runBlocking
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import java.io.IOException
-import java.time.DayOfWeek
-import java.time.Month
-import java.time.Year
 
 
 object PTScraper {
    private const val url: String = "https://masjids.co.za/salaahtimes"
    private lateinit var timesUrl: String
-   private val prayerTitles: Array<String> = arrayOf("Date", "Fajr", "Dhur", "Asr (S)", "Asr (H)", "Maghrib", "Isha")
+
+   var prayerTitles: MutableList<String> = mutableListOf()
    private var timesList: MutableList<String> = mutableListOf()
    private var areaSet: Boolean = false
+
+   private var thisMonth: Int = 0
+   private var thisYear: Int = 0
 
    /**
     * This gets the area titles.
@@ -50,28 +51,71 @@ object PTScraper {
       if (!areaSet) {
          println("Area not set")
          return null
+
+      } else if (thisYear == year && thisMonth == month && timesList.size != 0) {
+         return timesList
       }
+
+      thisYear = year
+      thisMonth = month
+      timesList.clear()
+      prayerTitles.clear()
 
       val doc: Document = Jsoup.connect("$timesUrl/$year-$month").get()
       val table = doc.select("table.table-striped")
       val tableData = table.select("td")
 
+      // Initialize the titles
+      val thead = table.select("thead")
+      if (thead != null) {
+         val tHeaders = thead[0].select("th")
+         for (header in tHeaders) {
+            prayerTitles.add(header.text())
+         }
+         // Remove first 2 titles (date and day)
+         prayerTitles.removeAt(0)
+         prayerTitles.removeAt(0)
+      }
+
+      // Populate the times list
       for (td in tableData) {
          timesList.add(td.text())
       }
+
+      // Remove date and day from times data
       val timesListSize: Int = timesList.size
-      //TODO: Change step size according to number of titles
-      for (i in 0..<timesListSize step 8) {
+      for (i in 0..<timesListSize step prayerTitles.size + 2) {
          timesList.remove(tableData[i].text())
          timesList.remove(tableData[i+1].text())
-         timesList.remove(tableData[i+3].text())
-//         println("$i, ${i+1}, ${i+3}")
       }
       return timesList
    }
 
-   fun getPrayerTimesDay(year: Year, month: Month, day: DayOfWeek) {
+   fun getPrayerTimesDay(year: Int, month: Int, day: Int): MutableList<String>? {
+      val result: MutableList<String> = mutableListOf()
+      if (thisYear != year || thisMonth != month || timesList.size == 0) {
+         getPrayerTimesMonth(year, month)
+      }
 
+      val size = prayerTitles.size
+
+      return if (timesList.size == 0) {
+         null
+      } else {
+         // Get all times for the day and return it
+         val startIndex = (day - 1) + (size - 1) * (day - 1)
+         val endIndex = startIndex + 5
+
+         if (startIndex >= timesList.size) {
+            println("Invalid day")
+            return null
+         }
+
+         for (i in startIndex .. endIndex) {
+            result.add(timesList[i])
+         }
+         return result
+      }
    }
 
 }
@@ -85,14 +129,22 @@ fun main() = runBlocking {
          println(title)
       }
    }
-   val times = PTScraper.getPrayerTimesMonth(2023, 2)
+   val times = PTScraper.getPrayerTimesMonth(2023, 12)
+   var temp = 0
    if (times != null) {
       times.forEachIndexed { index, time ->
-         print("Time: $time ")
-         if (index % 5 == 0 && index != 0) {
+         if (index % 6 == 0 && index != 0) {
             println()
+            temp = index
          }
+         print("${PTScraper.prayerTitles[index-temp]}: $time ")
+      }
+   }
+
+   val dayTimes = PTScraper.getPrayerTimesDay(2022, 12, 7)
+   if (dayTimes != null) {
+      dayTimes.forEach { time ->
+         println(time)
       }
    }
 }
-// TODO: Get titles dynamically since only Cape Town includes Thur
