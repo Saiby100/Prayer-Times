@@ -14,23 +14,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.content.ContextCompat
 import androidx.core.content.res.ResourcesCompat
-import androidx.core.view.children
 import com.app.prayer_times.data.PTScraper
 import com.app.prayer_times.ui.theme.PrayerTimesTheme
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.util.Calendar
+import com.app.prayer_times.utils.Date
 
 class MainActivity : ComponentActivity() {
 
     private lateinit var sharedPreferences: SharedPreferences
-
-    val calendar = Calendar.getInstance()
-    val year: Int = calendar.get(Calendar.YEAR)
-    val month: Int = calendar.get(Calendar.MONTH) + 1
-    val day: Int = calendar.get(Calendar.DAY_OF_MONTH)
+    private val date = Date()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -127,10 +122,31 @@ class MainActivity : ComponentActivity() {
         prevDayBtn.setOnClickListener { prevDay() }
 
         //TODO: Highlight nearest time
+        initTimesLayout()
+    }
+
+    private fun initMonthLayout() {
+        //TODO: Implement
+        setContentView(R.layout.month_layout)
+    }
+
+    private fun nextDay() {
+        //TODO: Implement
+        date.changeDay(1)
+        initTimesLayout()
+    }
+
+    private fun prevDay() {
+        //TODO: Implement
+        date.changeDay(-1)
+        initTimesLayout()
+    }
+
+    private fun initTimesLayout() {
         CoroutineScope(Dispatchers.Main).launch {
             try {
                 val dayTimes: MutableList<String>? = withContext(Dispatchers.IO) {
-                    PTScraper.getPrayerTimesDay(year, month, day)
+                    PTScraper.getPrayerTimesDay(date.year, date.month, date.day)
                 }
                 if (dayTimes != null) {
                     addDayTimes(dayTimes)
@@ -145,28 +161,11 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    private fun initMonthLayout() {
-        //TODO: Implement
-        setContentView(R.layout.month_layout)
-    }
-
-    private fun nextDay() {
-        //TODO: Implement
-        Toast.makeText(this@MainActivity, "TODO: Go to next day", Toast.LENGTH_SHORT)
-            .show()
-    }
-
-    private fun prevDay() {
-        //TODO: Implement
-        Toast.makeText(this@MainActivity, "TODO: Go to previous day", Toast.LENGTH_SHORT)
-            .show()
-    }
-
     private fun addDayTimes(dayTimes: MutableList<String>) {
         val layout = findViewById<LinearLayout>(R.id.timesLayout)
         val dateTitle = findViewById<TextView>(R.id.dateTitle)
 
-        dateTitle.text = "$day/$month/$year"
+        dateTitle.text = "${date.day}/${date.month}/${date.year}"
         layout.removeAllViews()
 
         //TODO: Highlight button with nearest time
