@@ -20,7 +20,7 @@ object PTScraper {
    /**
     * This gets the area titles.
     */
-   fun getAreaTitles(): Array<String>? {
+   suspend fun getAreaTitles(): Array<String>? {
       val titles = mutableListOf<String>()
 
       try {
@@ -47,7 +47,7 @@ object PTScraper {
       areaSet = true
    }
 
-   fun getPrayerTimesMonth(year: Int, month: Int): MutableList<String>? {
+   suspend fun getPrayerTimesMonth(year: Int, month: Int): MutableList<String>? {
       if (!areaSet) {
          println("Area not set")
          return null
@@ -91,7 +91,7 @@ object PTScraper {
       return timesList
    }
 
-   fun getPrayerTimesDay(year: Int, month: Int, day: Int): MutableList<String>? {
+   suspend fun getPrayerTimesDay(year: Int, month: Int, day: Int): MutableList<String>? {
       val result: MutableList<String> = mutableListOf()
       if (thisYear != year || thisMonth != month || timesList.size == 0) {
          getPrayerTimesMonth(year, month)

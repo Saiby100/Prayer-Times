@@ -3,20 +3,16 @@ package com.app.prayer_times
 import android.content.Context
 import android.content.SharedPreferences
 import android.os.Bundle
+import android.util.Log
 import android.widget.Button
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.ComponentActivity
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.content.ContextCompat
 import androidx.core.content.res.ResourcesCompat
+import androidx.lifecycle.lifecycleScope
 import com.app.prayer_times.data.PTScraper
-import com.app.prayer_times.ui.theme.PrayerTimesTheme
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -55,7 +51,7 @@ class MainActivity : ComponentActivity() {
 
     private fun initAreaLayout() {
         val linearLayout = findViewById<LinearLayout>(R.id.areaLayout)
-        CoroutineScope(Dispatchers.Main).launch {
+        lifecycleScope.launch {
             try {
                 val areaStrings: Array<String>? = withContext(Dispatchers.IO) { PTScraper.getAreaTitles() }
                 if (areaStrings != null) {
@@ -69,8 +65,8 @@ class MainActivity : ComponentActivity() {
                     }
                 }
             } catch (e: Exception) {
-                Toast.makeText(this@MainActivity, "Failed to fetch areas: $e", Toast.LENGTH_SHORT)
-                    .show()
+                showToast("Failed to fetch areas")
+                Log.e("ERROR", "Failed to fetch areas: $e")
             }
         }
     }
@@ -105,7 +101,6 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun handleAreaSelected(areaString: String) {
-        //TODO: Save area to memory
         PTScraper.setArea(areaString)
         saveSetting("user_area", areaString)
         initDayLayout(areaString)
@@ -123,7 +118,6 @@ class MainActivity : ComponentActivity() {
         nextDayBtn.setOnClickListener { nextDay() }
         prevDayBtn.setOnClickListener { prevDay() }
 
-        //TODO: Highlight nearest time
         initTimesLayout()
     }
 
@@ -143,7 +137,7 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun initTimesLayout() {
-        CoroutineScope(Dispatchers.Main).launch {
+        lifecycleScope.launch {
             try {
                 val dayTimes: MutableList<String>? = withContext(Dispatchers.IO) {
                     PTScraper.getPrayerTimesDay(date.year, date.month, date.day)
@@ -151,12 +145,11 @@ class MainActivity : ComponentActivity() {
                 if (dayTimes != null) {
                     addDayTimes(dayTimes)
                 } else {
-                    Toast.makeText(this@MainActivity, "Failed to get prayer times", Toast.LENGTH_SHORT)
-                        .show()
+                    showToast("Failed to get prayer times")
                 }
             } catch (e: Exception) {
-                Toast.makeText(this@MainActivity, "Failed to get prayer times: $e", Toast.LENGTH_LONG)
-                    .show()
+                showToast("Failed to get prayer times")
+                Log.e("ERROR", "Failed to fetch prayer times: $e")
             }
         }
     }
@@ -173,20 +166,9 @@ class MainActivity : ComponentActivity() {
             layout.addView(createButtonItem(time, false))
         }
     }
-}
 
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-            text = "Hello $name!",
-            modifier = modifier
-    )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    PrayerTimesTheme {
-        Greeting("Android")
+    private fun showToast(message: String) {
+        Toast.makeText(this@MainActivity, message, Toast.LENGTH_SHORT)
+            .show()
     }
 }
