@@ -111,8 +111,10 @@ object PTScraper {
             return null
          }
 
+         var j: Int = 0
          for (i in startIndex .. endIndex) {
-            result.add(timesList[i])
+            result.add("${prayerTitles[j]}: ${timesList[i]}")
+            j++
          }
          return result
       }
@@ -120,31 +122,40 @@ object PTScraper {
 
 }
 fun main() = runBlocking {
-   //For testing
-   val titles: Array<String>? = PTScraper.getAreaTitles()
-   PTScraper.setArea("Cape Town")
-
-   if (titles != null) {
-      for (title in titles) {
-         println(title)
-      }
-   }
-   val times = PTScraper.getPrayerTimesMonth(2023, 12)
-   var temp = 0
+   PTScraper.setArea("Pretoria")
+   val times = PTScraper.getPrayerTimesDay(2023, 12, 25)
    if (times != null) {
-      times.forEachIndexed { index, time ->
-         if (index % 6 == 0 && index != 0) {
-            println()
-            temp = index
-         }
-         print("${PTScraper.prayerTitles[index-temp]}: $time ")
-      }
-   }
-
-   val dayTimes = PTScraper.getPrayerTimesDay(2022, 12, 7)
-   if (dayTimes != null) {
-      dayTimes.forEach { time ->
+      for (time in times) {
          println(time)
       }
    }
+
+   //For testing
+//   val titles: Array<String>? = PTScraper.getAreaTitles()
+//   PTScraper.setArea("Cape Town")
+//
+//   if (titles != null) {
+//      for (title in titles) {
+//         println(title)
+//      }
+//   }
+//   val times = PTScraper.getPrayerTimesMonth(2023, 12)
+//   var temp = 0
+//   if (times != null) {
+//      times.forEachIndexed { index, time ->
+//         if (index % 6 == 0 && index != 0) {
+//            println()
+//            temp = index
+//         }
+//         print("${PTScraper.prayerTitles[index-temp]}: $time ")
+//      }
+//   }
+//
+//   val dayTimes = PTScraper.getPrayerTimesDay(2022, 12, 7)
+//   if (dayTimes != null) {
+//      dayTimes.forEach { time ->
+//         println(time)
+//      }
+//   }
+
 }
