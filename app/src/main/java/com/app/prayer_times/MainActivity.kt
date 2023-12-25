@@ -38,6 +38,7 @@ class MainActivity : ComponentActivity() {
             initAreaLayout()
         } else {
             setContentView(R.layout.day_layout)
+            PTScraper.setArea(area)
             initDayLayout(area)
         }
     }
@@ -106,6 +107,7 @@ class MainActivity : ComponentActivity() {
     private fun handleAreaSelected(areaString: String) {
         //TODO: Save area to memory
         PTScraper.setArea(areaString)
+        saveSetting("user_area", areaString)
         initDayLayout(areaString)
     }
 
@@ -131,13 +133,11 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun nextDay() {
-        //TODO: Implement
         date.changeDay(1)
         initTimesLayout()
     }
 
     private fun prevDay() {
-        //TODO: Implement
         date.changeDay(-1)
         initTimesLayout()
     }
