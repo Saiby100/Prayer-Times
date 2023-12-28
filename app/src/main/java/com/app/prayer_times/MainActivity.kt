@@ -12,6 +12,7 @@ import androidx.activity.ComponentActivity
 import androidx.core.content.ContextCompat
 import androidx.core.content.res.ResourcesCompat
 import androidx.lifecycle.lifecycleScope
+import com.app.prayer_times.data.PTManager
 import com.app.prayer_times.data.PTScraper
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -34,7 +35,7 @@ class MainActivity : ComponentActivity() {
             initAreaLayout()
         } else {
             setContentView(R.layout.day_layout)
-            PTScraper.setArea(area)
+            PTManager.initArea(area)
             initDayLayout(area)
         }
     }
@@ -53,7 +54,7 @@ class MainActivity : ComponentActivity() {
         val linearLayout = findViewById<LinearLayout>(R.id.areaLayout)
         lifecycleScope.launch {
             try {
-                val areaStrings: Array<String>? = withContext(Dispatchers.IO) { PTScraper.getAreaTitles() }
+                val areaStrings: Array<String>? = withContext(Dispatchers.IO) { PTManager.getAreaTitles() }
                 if (areaStrings != null) {
                     var button: Button
                     for (area in areaStrings) {
@@ -101,7 +102,7 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun handleAreaSelected(areaString: String) {
-        PTScraper.setArea(areaString)
+        PTManager.initArea(areaString)
         saveSetting("user_area", areaString)
         initDayLayout(areaString)
     }
@@ -140,12 +141,12 @@ class MainActivity : ComponentActivity() {
         lifecycleScope.launch {
             try {
                 val dayTimes: MutableList<String>? = withContext(Dispatchers.IO) {
-                    PTScraper.getPrayerTimesDay(date.year, date.month, date.day)
+                    PTManager.getPrayerTimesDay(date.year, date.month, date.day)
                 }
                 if (dayTimes != null) {
                     addDayTimes(dayTimes)
                 } else {
-                    showToast("Failed to get prayer times")
+                    showToast("No prayer times found")
                 }
             } catch (e: Exception) {
                 showToast("Failed to get prayer times")
