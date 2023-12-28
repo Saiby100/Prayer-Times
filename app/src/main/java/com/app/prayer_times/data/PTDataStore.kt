@@ -1,5 +1,6 @@
 package com.app.prayer_times.data
 
+import android.content.Context
 import com.opencsv.CSVReader
 import com.opencsv.CSVWriter
 import java.io.File
@@ -17,16 +18,17 @@ object PTDataStore {
         area: String,
         titles: MutableList<String>?,
         year: Int,
-        month: Int
+        month: Int,
+        context: Context
     ) {
         try {
             val filename: String = "times_${month}${year}_${area}.csv"
-            val file: File = File(filename)
+            val file: File = File(context.filesDir, filename)
             if (!file.exists()) {
                 file.createNewFile()
             }
 
-            val fileWriter = FileWriter(filename, false)
+            val fileWriter = FileWriter(file, false)
             val csvWriter = CSVWriter(fileWriter)
 
             csvWriter.writeNext(titles?.toTypedArray())
@@ -42,15 +44,17 @@ object PTDataStore {
     /**
      * This gets prayer times from local storage.
      */
-    fun getPrayerTimes(area: String, year: Int, month: Int): MutableList<String>? {
+    fun getPrayerTimes(area: String, year: Int, month: Int, context: Context): MutableList<String>?
+    {
         val timesList: MutableList<String> = mutableListOf()
         var isFirstArrayRead: Boolean = false
         try {
             val filename: String = "times_${month}${year}_${area}.csv"
-            if (!File(filename).exists()) {
+            val file: File = File(context.filesDir, filename)
+            if (!file.exists()) {
                 return null
             }
-            val fileReader = FileReader(filename)
+            val fileReader = FileReader(file)
             val csvReader = CSVReader(fileReader)
 
             var array: Array<String>?
@@ -76,9 +80,9 @@ object PTDataStore {
         return timesList
     }
 
-    fun hasLocalData(area: String, year: Int, month: Int): Boolean {
+    fun hasLocalData(area: String, year: Int, month: Int, context: Context): Boolean {
         val filename: String = "times_${month}${year}_${area}.csv"
-        val file: File = File(filename)
+        val file: File = File(context.filesDir, filename)
 
         return file.exists()
     }

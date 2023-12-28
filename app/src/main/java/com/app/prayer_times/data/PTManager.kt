@@ -1,5 +1,7 @@
 package com.app.prayer_times.data
 
+import android.content.Context
+import android.util.Log
 import kotlinx.coroutines.runBlocking
 import java.util.Calendar
 
@@ -15,16 +17,20 @@ object PTManager {
     fun initArea(area: String) {
         thisArea = area
         PTScraper.setArea(area)
-//        println("PTScraper initialization successful")
+//        Log.d("MESSAGE", "PTScraper initialization successful")
     }
 
     suspend fun getAreaTitles(): Array<String>? {
         return PTScraper.getAreaTitles()
     }
 
-    suspend fun getPrayerTimesMonth(year: Int, month: Int): MutableList<String>? {
+    suspend fun getPrayerTimesMonth(
+        year: Int,
+        month: Int,
+        context: Context
+    ): MutableList<String>? {
         if (thisYear == year && thisMonth == month && timesList.size != 0) {
-//            println("Times list already initialized so just sending it back")
+//            Log.d("MESSAGE", "Times list already initialized so just sending it back")
             return timesList
         }
 
@@ -32,23 +38,30 @@ object PTManager {
 
         val list: MutableList<String>?
 
-        if (PTDataStore.hasLocalData(thisArea, year, month)) {
-//            println("Local data found")
-//            println("reading from local storage")
-            list = PTDataStore.getPrayerTimes(thisArea, year, month)
-//            println("Setting prayer titles")
+        if (PTDataStore.hasLocalData(thisArea, year, month, context)) {
+//            Log.d("MESSAGE", "Local data found")
+//            Log.d("MESSAGE", "reading from local storage")
+            list = PTDataStore.getPrayerTimes(thisArea, year, month, context)
+//            Log.d("MESSAGE", "Setting prayer titles")
             prayerTitles = PTDataStore.titles
         } else {
-//            println("No local data found")
-//            println("Making web request")
+//            Log.d("MESSAGE", "No local data found")
+//            Log.d("MESSAGE", "Making web request")
             list = PTScraper.getPrayerTimesMonth(year, month)
-//            println("Setting prayer titles")
+//            Log.d("MESSAGE", "Setting prayer titles")
             prayerTitles = PTScraper.prayerTitles
 
             //Store this response if it's the current year and month
             if (thisYear == year && thisMonth == month) {
-//                println("Is current year and month. Saving web request data")
-                PTDataStore.savePrayerTimes(list, thisArea, prayerTitles, thisYear, thisMonth)
+//                Log.d("MESSAGE", "Is current year and month. Saving web request data")
+                PTDataStore.savePrayerTimes(
+                    list,
+                    thisArea,
+                    prayerTitles,
+                    thisYear,
+                    thisMonth,
+                    context
+                )
             }
         }
         thisYear = year
@@ -60,8 +73,13 @@ object PTManager {
         return list
     }
 
-    suspend fun getPrayerTimesDay(year: Int, month: Int, day: Int): MutableList<String>? {
-        getPrayerTimesMonth(year, month)
+    suspend fun getPrayerTimesDay(
+        year: Int,
+        month: Int,
+        day: Int,
+        context: Context
+    ): MutableList<String>? {
+        getPrayerTimesMonth(year, month, context)
 
         return if (timesList.size == 0) {
            null
@@ -86,8 +104,8 @@ object PTManager {
 }
 
 fun main() = runBlocking {
-//    val area: String = "Pretoria"
-//    PTManager.initArea(area)
+    val area: String = "Pretoria"
+    PTManager.initArea(area)
 
     //GET MONTH
 //    val times = PTManager.getPrayerTimesMonth(2023, 12)

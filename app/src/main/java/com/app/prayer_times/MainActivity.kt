@@ -141,7 +141,7 @@ class MainActivity : ComponentActivity() {
         lifecycleScope.launch {
             try {
                 val dayTimes: MutableList<String>? = withContext(Dispatchers.IO) {
-                    PTManager.getPrayerTimesDay(date.year, date.month, date.day)
+                    PTManager.getPrayerTimesDay(date.year, date.month, date.day, this@MainActivity)
                 }
                 if (dayTimes != null) {
                     addDayTimes(dayTimes)
