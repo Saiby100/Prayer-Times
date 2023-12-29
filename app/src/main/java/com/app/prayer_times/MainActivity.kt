@@ -2,6 +2,8 @@ package com.app.prayer_times
 
 import android.content.Context
 import android.content.SharedPreferences
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
 import android.os.Bundle
 import android.util.Log
 import android.widget.Button
@@ -13,7 +15,6 @@ import androidx.core.content.ContextCompat
 import androidx.core.content.res.ResourcesCompat
 import androidx.lifecycle.lifecycleScope
 import com.app.prayer_times.data.PTManager
-import com.app.prayer_times.data.PTScraper
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -50,8 +51,15 @@ class MainActivity : ComponentActivity() {
         return sharedPreferences.getString(key, null)
     }
 
-    private fun initAreaLayout() {
+    private fun initAreaLayout(): Boolean {
         val linearLayout = findViewById<LinearLayout>(R.id.areaLayout)
+
+        if (!hasInternetConnection(this@MainActivity)) {
+            //TODO: Implement retry button
+            showToast("Check internet connection and try again")
+            return false
+        }
+
         lifecycleScope.launch {
             try {
                 val areaStrings: Array<String>? = withContext(Dispatchers.IO) { PTManager.getAreaTitles() }
@@ -70,6 +78,7 @@ class MainActivity : ComponentActivity() {
                 Log.e("ERROR", "Failed to fetch areas: $e")
             }
         }
+        return true
     }
 
     private fun createButtonItem(text: String, highlighted: Boolean): Button {
@@ -129,15 +138,28 @@ class MainActivity : ComponentActivity() {
 
     private fun nextDay() {
         date.changeDay(1)
-        initTimesLayout()
+
+        if(!initTimesLayout()) {
+            date.changeDay(-1)
+        }
     }
 
     private fun prevDay() {
         date.changeDay(-1)
-        initTimesLayout()
+
+        if(!initTimesLayout()) {
+           date.changeDay(1)
+        }
     }
 
-    private fun initTimesLayout() {
+    private fun initTimesLayout(): Boolean {
+        if (!PTManager.hasLocalData(date.year, date.month, this@MainActivity)) {
+            if (!hasInternetConnection(this@MainActivity)) {
+                showToast("Check internet connection and try again")
+                return false
+            }
+        }
+
         val prevDayBtn = findViewById<Button>(R.id.prevDayBtn)
         val nextDayBtn = findViewById<Button>(R.id.nextDayBtn)
 
@@ -162,6 +184,7 @@ class MainActivity : ComponentActivity() {
                 Log.e("ERROR", "Failed to fetch prayer times: $e")
             }
         }
+        return true
     }
 
     private fun addDayTimes(dayTimes: MutableList<String>) {
@@ -180,5 +203,18 @@ class MainActivity : ComponentActivity() {
     private fun showToast(message: String) {
         Toast.makeText(this@MainActivity, message, Toast.LENGTH_SHORT)
             .show()
+    }
+
+    /**
+     * Check if user has internet connection
+     */
+    private fun hasInternetConnection(context: Context): Boolean {
+        val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as
+                ConnectivityManager
+
+        val network = connectivityManager.activeNetwork
+        val capabilities = connectivityManager.getNetworkCapabilities(network)
+
+        return capabilities?.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) == true
     }
 }

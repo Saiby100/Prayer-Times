@@ -100,6 +100,10 @@ object PTManager {
             return result
         }
     }
+
+    fun hasLocalData(year: Int, month: Int, context: Context): Boolean {
+        return PTDataStore.hasLocalData(thisArea, year, month, context)
+    }
 }
 
 fun main() = runBlocking {
