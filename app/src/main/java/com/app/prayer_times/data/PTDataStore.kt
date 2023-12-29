@@ -61,7 +61,7 @@ object PTDataStore {
 
             while (csvReader.readNext().also {array = it} != null) {
                 array?.let {
-                    if (!isFirstArrayRead) {
+                    if (!isFirstArrayRead && titles.size == 0) {
                         titles.addAll(it)
                         isFirstArrayRead = true
                     } else {

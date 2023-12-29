@@ -7,7 +7,7 @@ import java.util.Calendar
 
 object PTManager {
     private var timesList: MutableList<String> = mutableListOf()
-    var prayerTitles: MutableList<String> = mutableListOf()
+    private var prayerTitles: MutableList<String> = mutableListOf()
 
     private var calendar = Calendar.getInstance()
     private var thisMonth: Int = calendar.get(Calendar.MONTH) + 1
@@ -91,7 +91,6 @@ object PTManager {
             val endIndex = startIndex + 5
 
             if (startIndex >= timesList.size) {
-//                println("Invalid day")
                 return null
             }
 
