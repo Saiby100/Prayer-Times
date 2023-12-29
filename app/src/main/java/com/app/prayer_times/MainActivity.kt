@@ -138,6 +138,12 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun initTimesLayout() {
+        val prevDayBtn = findViewById<Button>(R.id.prevDayBtn)
+        val nextDayBtn = findViewById<Button>(R.id.nextDayBtn)
+
+        prevDayBtn.isEnabled = false
+        nextDayBtn.isEnabled = false
+
         lifecycleScope.launch {
             try {
                 val dayTimes: MutableList<String>? = withContext(Dispatchers.IO) {
@@ -148,6 +154,9 @@ class MainActivity : ComponentActivity() {
                 } else {
                     showToast("No prayer times found")
                 }
+
+                prevDayBtn.isEnabled = true
+                nextDayBtn.isEnabled = true
             } catch (e: Exception) {
                 showToast("Failed to get prayer times")
                 Log.e("ERROR", "Failed to fetch prayer times: $e")
