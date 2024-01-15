@@ -1,5 +1,6 @@
 package com.app.prayer_times.data
 
+import android.util.Log
 import kotlinx.coroutines.runBlocking
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
@@ -13,8 +14,12 @@ object PTScraper {
    var prayerTitles: MutableList<String> = mutableListOf()
    private var areaSet: Boolean = false
 
+   private var mutex = 0
+   private var myQueueNum = -1
+
    /**
-    * This gets the area titles.
+    * This gets the all area titles available on website.
+    * @return an array of area strings.
     */
    suspend fun getAreaTitles(): Array<String>? {
       val titles = mutableListOf<String>()
@@ -35,7 +40,7 @@ object PTScraper {
    }
 
    /**
-    * Set the timesUrl for the given area
+    * Set the timesUrl for [area].
     */
    fun setArea(area: String) {
       val areaString = area.replace("\\s".toRegex(), "").lowercase()
@@ -43,12 +48,19 @@ object PTScraper {
       areaSet = true
    }
 
+   /**
+    * Makes a web request fetching prayer times for [year] and [month].
+    * @return list of all the times.
+    */
    suspend fun getPrayerTimesMonth(year: Int, month: Int): MutableList<String>? {
       if (!areaSet) {
          println("Area not set")
          return null
 
       }
+
+      myQueueNum++
+      waitForThread(myQueueNum)
 
       prayerTitles.clear()
 
@@ -68,6 +80,7 @@ object PTScraper {
          prayerTitles.removeAt(0)
       }
 
+
       val timesList: MutableList<String> = mutableListOf()
 
       // Populate the times list
@@ -81,7 +94,18 @@ object PTScraper {
          timesList.remove(tableData[i].text())
          timesList.remove(tableData[i+1].text())
       }
+
+      mutex++
       return timesList
+   }
+
+   /**
+    * Used to synchronise access to prayerTitles.
+    */
+   private fun waitForThread(queueNum: Int) {
+      while (mutex != queueNum) {
+         run {}
+      }
    }
 }
 fun main() = runBlocking {

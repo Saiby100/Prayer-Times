@@ -19,11 +19,14 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import com.app.prayer_times.utils.Date
+import kotlinx.coroutines.Job
 
 class MainActivity : ComponentActivity() {
 
     private lateinit var sharedPreferences: SharedPreferences
     private val date = Date()
+    private lateinit var nextMonthJob: Job
+    private lateinit var prevMonthJob: Job
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -128,6 +131,8 @@ class MainActivity : ComponentActivity() {
         nextDayBtn.setOnClickListener { nextDay() }
         prevDayBtn.setOnClickListener { prevDay() }
 
+        fetchNextMonthTimes()
+        fetchPrevMonthTimes()
         initTimesLayout()
     }
 
@@ -137,18 +142,30 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun nextDay() {
+        val tempMonth = date.month
         date.changeDay(1)
 
         if(!initTimesLayout()) {
             date.changeDay(-1)
+        } else {
+            if (date.month != tempMonth) {
+                //Moved into next month
+                fetchNextMonthTimes()
+            }
         }
     }
 
     private fun prevDay() {
+        val tempMonth = date.month
         date.changeDay(-1)
 
         if(!initTimesLayout()) {
            date.changeDay(1)
+        } else {
+            if (date.month != tempMonth) {
+                //Moved into previous month
+                fetchPrevMonthTimes()
+            }
         }
     }
 
@@ -169,7 +186,13 @@ class MainActivity : ComponentActivity() {
         lifecycleScope.launch {
             try {
                 val dayTimes: MutableList<String>? = withContext(Dispatchers.IO) {
-                    PTManager.getPrayerTimesDay(date.year, date.month, date.day, this@MainActivity)
+                    PTManager.getPrayerTimesDay(
+                        date.year,
+                        date.month,
+                        date.day,
+                        nextMonthJob,
+                        prevMonthJob,
+                        this@MainActivity)
                 }
                 if (dayTimes != null) {
                     addDayTimes(dayTimes)
@@ -216,5 +239,29 @@ class MainActivity : ComponentActivity() {
         val capabilities = connectivityManager.getNetworkCapabilities(network)
 
         return capabilities?.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) == true
+    }
+
+    private fun fetchNextMonthTimes() {
+        nextMonthJob = lifecycleScope.launch {
+            withContext(Dispatchers.IO) {
+                val newDate = Date()
+                newDate.setDate(date.year, date.month)
+
+                newDate.changeMonth(1)
+                PTManager.fetchNextMonth(newDate.year, newDate.month)
+            }
+        }
+    }
+
+    private fun fetchPrevMonthTimes() {
+        prevMonthJob = lifecycleScope.launch {
+            withContext(Dispatchers.IO) {
+                val newDate = Date()
+                newDate.setDate(date.year, date.month)
+
+                newDate.changeMonth(-1)
+                PTManager.fetchPrevMonth(newDate.year, newDate.month)
+            }
+        }
     }
 }
