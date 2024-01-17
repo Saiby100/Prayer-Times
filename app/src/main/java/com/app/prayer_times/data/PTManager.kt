@@ -64,34 +64,21 @@ object PTManager {
             //Fetch from local storage
             list = PTDataStore.getPrayerTimes(thisArea, year, month, context)
             prayerTitles = PTDataStore.titles
+
         } else if (year == nextYear && month == nextMonth) {
             //Use next month stored in memory
             nextMonthJob.join()
             prevTimesList = timesList
-            list?.addAll(nextTimesList)
+            list = nextTimesList
 
-            prevMonth  = thisMonth
-            prevYear = thisYear
-
-            nextMonth = date.getNextMonth(nextMonth)
-            if (nextMonth == 1) {
-                 nextYear = thisYear + 1
-            }
-            nextTimesList.clear()
+            nextTimesList = mutableListOf()
         } else if (year == prevYear && month == prevMonth) {
             //Use previous month stored in memory
             prevMonthJob.join()
             nextTimesList = timesList
-            list?.addAll(prevTimesList)
+            list = prevTimesList
 
-            nextMonth = thisMonth
-            nextYear = thisYear
-
-            prevMonth = date.getPrevMonth(prevMonth)
-            if (prevMonth == 12) {
-                 prevYear = thisYear - 1
-            }
-            prevTimesList.clear()
+            prevTimesList = mutableListOf()
         } else {
             //New request
             list = PTScraper.getPrayerTimesMonth(year, month)
@@ -109,8 +96,7 @@ object PTManager {
                 )
             }
         }
-        thisYear = year
-        thisMonth = month
+        updateTimeVars(year, month)
 
         if (list != null) {
             timesList = list
@@ -199,6 +185,25 @@ object PTManager {
      */
     fun hasLocalData(year: Int, month: Int, context: Context): Boolean {
         return PTDataStore.hasLocalData(thisArea, year, month, context)
+    }
+
+    private fun updateTimeVars(year: Int, month: Int) {
+        thisYear = year
+        thisMonth = month
+
+        prevMonth = date.getPrevMonth(month)
+        prevYear = if (prevMonth == 12) {
+            year - 1
+        } else {
+            year
+        }
+
+        nextMonth = date.getNextMonth(month)
+        nextYear = if (nextMonth == 1) {
+            year + 1
+        } else {
+            year
+        }
     }
 
     private fun logMsg(message: String) {
