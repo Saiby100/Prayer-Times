@@ -66,14 +66,11 @@ class Date {
      * @return the next month (1 - 12).
      */
     fun getNextMonth(startMonth: Int): Int {
-        calendar.set(Calendar.MONTH, startMonth - 1)
-        calendar.add(Calendar.MONTH, 1)
+        val nextMonth = startMonth + 1
+        if (nextMonth > 12)
+            return 1
 
-        val result = calendar.get(Calendar.MONTH) + 1
-
-        calendar.set(Calendar.MONTH, month - 1)
-
-        return result
+        return nextMonth
     }
 
     /**
@@ -81,14 +78,11 @@ class Date {
      * @return the previous month (1 - 12).
      */
     fun getPrevMonth(startMonth: Int): Int {
-        calendar.set(Calendar.MONTH, startMonth - 1)
-        calendar.add(Calendar.MONTH, -1)
+        val prevMonth = startMonth - 1
+        if (prevMonth < 1)
+            return 12
 
-        val result = calendar.get(Calendar.MONTH) + 1
-
-        calendar.set(Calendar.MONTH, month - 1)
-
-        return result
+        return prevMonth
     }
 
     /**
