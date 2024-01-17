@@ -200,6 +200,10 @@ object PTManager {
     fun hasLocalData(year: Int, month: Int, context: Context): Boolean {
         return PTDataStore.hasLocalData(thisArea, year, month, context)
     }
+
+    private fun logMsg(message: String) {
+        Log.d("debugging", message)
+    }
 }
 
 fun main() = runBlocking {
