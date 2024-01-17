@@ -133,7 +133,7 @@ class MainActivity : ComponentActivity() {
 
         fetchNextMonthTimes()
         fetchPrevMonthTimes()
-        initTimesLayout()
+        initTimesLayout(-1)
     }
 
     private fun initMonthLayout() {
@@ -142,34 +142,24 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun nextDay() {
-        val tempMonth = date.month
+        val oldMonth = date.month
         date.changeDay(1)
 
-        if(!initTimesLayout()) {
+        if(!initTimesLayout(oldMonth)) {
             date.changeDay(-1)
-        } else {
-            if (date.month != tempMonth) {
-                //Moved into next month
-                fetchNextMonthTimes()
-            }
         }
     }
 
     private fun prevDay() {
-        val tempMonth = date.month
+        val oldMonth = date.month
         date.changeDay(-1)
 
-        if(!initTimesLayout()) {
+        if(!initTimesLayout(oldMonth)) {
            date.changeDay(1)
-        } else {
-            if (date.month != tempMonth) {
-                //Moved into previous month
-                fetchPrevMonthTimes()
-            }
         }
     }
 
-    private fun initTimesLayout(): Boolean {
+    private fun initTimesLayout(oldMonth: Int): Boolean {
         if (!PTManager.hasLocalData(date.year, date.month, this@MainActivity)) {
             if (!hasInternetConnection(this@MainActivity)) {
                 showToast("Check internet connection and try again")
@@ -198,6 +188,11 @@ class MainActivity : ComponentActivity() {
                     addDayTimes(dayTimes)
                 } else {
                     showToast("No prayer times found")
+                }
+                if (oldMonth == date.getPrevMonth(date.month)) {
+                    fetchNextMonthTimes()
+                } else if (oldMonth == date.getNextMonth(date.month)) {
+                    fetchPrevMonthTimes()
                 }
 
                 prevDayBtn.isEnabled = true
@@ -263,5 +258,9 @@ class MainActivity : ComponentActivity() {
                 PTManager.fetchPrevMonth(newDate.year, newDate.month)
             }
         }
+    }
+
+    private fun logMsg(message: String) {
+        Log.d("debugging", message)
     }
 }
