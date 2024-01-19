@@ -60,29 +60,43 @@ object PTManager {
 
         var list: MutableList<String>? = mutableListOf()
 
+        //Complete fetching adjacent months
+        if (isAdjacent(month)) {
+            nextMonthJob.join()
+            prevMonthJob.join()
+        }
+
         if (PTDataStore.hasLocalData(thisArea, year, month, context)) {
             //Fetch from local storage
+            if (month == prevMonth) {
+                nextTimesList = timesList
+            } else if (month == nextMonth) {
+                prevTimesList = timesList
+            }
+
             list = PTDataStore.getPrayerTimes(thisArea, year, month, context)
-            prayerTitles = PTDataStore.titles
+            prayerTitles.clear()
+            prayerTitles.addAll(PTDataStore.titles)
 
         } else if (year == nextYear && month == nextMonth) {
             //Use next month stored in memory
-            nextMonthJob.join()
             prevTimesList = timesList
             list = nextTimesList
 
             nextTimesList = mutableListOf()
+            logMsg("prevTimesList = ${month - 1}; timesList = $month")
         } else if (year == prevYear && month == prevMonth) {
             //Use previous month stored in memory
-            prevMonthJob.join()
             nextTimesList = timesList
             list = prevTimesList
 
             prevTimesList = mutableListOf()
+            logMsg("nextTimesList = ${month + 1}; timesList = $month")
         } else {
             //New request
             list = PTScraper.getPrayerTimesMonth(year, month)
-            prayerTitles = PTScraper.prayerTitles
+            prayerTitles.clear()
+            prayerTitles.addAll(PTScraper.prayerTitles)
 
             //Store this response if it's the current year and month
             if (thisYear == year && thisMonth == month) {
@@ -96,7 +110,7 @@ object PTManager {
                 )
             }
         }
-        updateTimeVars(year, month)
+        setDateVars(year, month)
 
         if (list != null) {
             timesList = list
@@ -105,37 +119,34 @@ object PTManager {
     }
 
     /**
-     * Fetches and stores [year] and [month]'s times in local storage.
+     * Checks if [month] is the same as the previous or next month.
+     * @return true if [month] is same as previous or next one, false otherwise.
+     */
+    private fun isAdjacent(month: Int): Boolean {
+        return month == prevMonth || month == nextMonth
+    }
+
+    /**
+     * Fetches and stores next month's times in local storage.
      * Intended to be called in the background and stored as next month.
      */
-    suspend fun fetchNextMonth(year: Int, month: Int) {
-        if (year == nextYear && month == nextMonth && nextTimesList.size != 0) {
-            return
-        }
-        nextMonth = month
-        nextYear = year
-
-        val list = PTScraper.getPrayerTimesMonth(year, month)
+    suspend fun fetchNextMonth() {
+        val list = PTScraper.getPrayerTimesMonth(nextYear, nextMonth)
         if (list != null) {
             nextTimesList = list
+            logMsg("nextTimesList = $nextMonth")
         }
     }
 
     /**
-     * Fetches and stores [year] and [month]'s times in local storage.
+     * Fetches and stores previous month's times in local storage.
      * Intended to be called in the background and stored as previous month.
      */
-    suspend fun fetchPrevMonth(year: Int, month: Int) {
-        if (year == prevYear && month == prevMonth && prevTimesList.size != 0) {
-            return
-        }
-
-        prevMonth = month
-        prevYear = year
-
-        val list = PTScraper.getPrayerTimesMonth(year, month)
+    suspend fun fetchPrevMonth() {
+        val list = PTScraper.getPrayerTimesMonth(prevYear, prevMonth)
         if (list != null) {
             prevTimesList = list
+            logMsg("prevTimesList = $prevMonth")
         }
     }
 
@@ -187,7 +198,7 @@ object PTManager {
         return PTDataStore.hasLocalData(thisArea, year, month, context)
     }
 
-    private fun updateTimeVars(year: Int, month: Int) {
+    fun setDateVars(year: Int, month: Int) {
         thisYear = year
         thisMonth = month
 

@@ -57,9 +57,8 @@ class MainActivity : ComponentActivity() {
     private fun initAreaLayout(): Boolean {
         val linearLayout = findViewById<LinearLayout>(R.id.areaLayout)
 
-        if (!hasInternetConnection(this@MainActivity)) {
+        if (!hasInternetConnection()) {
             //TODO: Implement retry button
-            showToast("Check internet connection and try again")
             return false
         }
 
@@ -124,6 +123,8 @@ class MainActivity : ComponentActivity() {
         val cityTitle: TextView = findViewById(R.id.cityTitle)
         cityTitle.text = areaString
 
+        PTManager.setDateVars(date.year, date.month)
+
         //Bind actions to next/prev buttons
         val nextDayBtn: Button = findViewById(R.id.nextDayBtn)
         val prevDayBtn: Button = findViewById(R.id.prevDayBtn)
@@ -161,8 +162,7 @@ class MainActivity : ComponentActivity() {
 
     private fun initTimesLayout(oldMonth: Int): Boolean {
         if (!PTManager.hasLocalData(date.year, date.month, this@MainActivity)) {
-            if (!hasInternetConnection(this@MainActivity)) {
-                showToast("Check internet connection and try again")
+            if (!hasInternetConnection()) {
                 return false
             }
         }
@@ -226,24 +226,27 @@ class MainActivity : ComponentActivity() {
     /**
      * Check if user has internet connection
      */
-    private fun hasInternetConnection(context: Context): Boolean {
+    private fun hasInternetConnection(): Boolean {
+        val context = this@MainActivity
         val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as
                 ConnectivityManager
 
         val network = connectivityManager.activeNetwork
         val capabilities = connectivityManager.getNetworkCapabilities(network)
 
-        return capabilities?.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) == true
+        val hasInternet = capabilities?.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) == true
+
+        if (!hasInternet) {
+            showToast("Check internet connection and try again")
+        }
+
+        return hasInternet
     }
 
     private fun fetchNextMonthTimes() {
         nextMonthJob = lifecycleScope.launch {
             withContext(Dispatchers.IO) {
-                val newDate = Date()
-                newDate.setDate(date.year, date.month)
-
-                newDate.changeMonth(1)
-                PTManager.fetchNextMonth(newDate.year, newDate.month)
+                PTManager.fetchNextMonth()
             }
         }
     }
@@ -251,11 +254,7 @@ class MainActivity : ComponentActivity() {
     private fun fetchPrevMonthTimes() {
         prevMonthJob = lifecycleScope.launch {
             withContext(Dispatchers.IO) {
-                val newDate = Date()
-                newDate.setDate(date.year, date.month)
-
-                newDate.changeMonth(-1)
-                PTManager.fetchPrevMonth(newDate.year, newDate.month)
+                PTManager.fetchPrevMonth()
             }
         }
     }
