@@ -68,7 +68,7 @@ class MainActivity : ComponentActivity() {
                 if (areaStrings != null) {
                     var button: Button
                     for (area in areaStrings) {
-                        button = createButtonItem(area, false)
+                        button = createButtonItem(area, true)
                         button.setOnClickListener {
                             handleAreaSelected(area)
                         }
@@ -83,32 +83,31 @@ class MainActivity : ComponentActivity() {
         return true
     }
 
-    private fun createButtonItem(text: String, highlighted: Boolean): Button {
+    private fun createButtonItem(text: String, highlighted: Boolean = false): Button {
         val button = Button(this)
 
         val layoutParams = LinearLayout.LayoutParams(
             LinearLayout.LayoutParams.MATCH_PARENT,
             LinearLayout.LayoutParams.WRAP_CONTENT
         )
-        layoutParams.setMargins(0, 0, 0, 10)
+        layoutParams.setMargins(0, 0, 0, 15)
 
         button.layoutParams = layoutParams
         button.text = text
         button.textAlignment = Button.TEXT_ALIGNMENT_CENTER
         button.textSize = 16f
         button.typeface = ResourcesCompat.getFont(this, R.font.inter_medium)
-        button.setTextColor(ContextCompat.getColor(this, R.color.text_color_light))
+        button.setTextColor(ContextCompat.getColor(this, R.color.white))
         button.setPadding(0, 13, 0, 13)
         button.elevation = 0f
         button.stateListAnimator = null
         button.isAllCaps = false
 
-        if (!highlighted) {
-            button.background = resources.getDrawable(R.drawable.list_item_background)
+        if (highlighted) {
+            button.background = resources.getDrawable(R.drawable.button_bg_highlighted)
         } else {
-            button.background = resources.getDrawable(R.drawable.list_item_highlighted_bg)
+            button.background = resources.getDrawable(R.drawable.button_bg)
         }
-
         return button
     }
 
@@ -217,7 +216,7 @@ class MainActivity : ComponentActivity() {
 
         //TODO: Highlight button with nearest time
         for (time in dayTimes) {
-            layout.addView(createButtonItem(time, false))
+            layout.addView(createButtonItem(time))
         }
     }
 
