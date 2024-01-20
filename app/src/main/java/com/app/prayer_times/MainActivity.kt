@@ -57,7 +57,7 @@ class MainActivity : ComponentActivity() {
     private fun initAreaLayout(): Boolean {
         val linearLayout = findViewById<LinearLayout>(R.id.areaLayout)
 
-        if (!hasInternetConnection()) {
+        if (!hasInternetConnection("Unable to connect to internet")) {
             //TODO: Implement retry button
             return false
         }
@@ -162,7 +162,7 @@ class MainActivity : ComponentActivity() {
 
     private fun initTimesLayout(oldMonth: Int): Boolean {
         if (!PTManager.hasLocalData(date.year, date.month, this@MainActivity)) {
-            if (!hasInternetConnection()) {
+            if (!hasInternetConnection("Unable to connect to internet")) {
                 return false
             }
         }
@@ -205,6 +205,9 @@ class MainActivity : ComponentActivity() {
         return true
     }
 
+    /**
+     * Adds the list of day times [dayTimes] to the layout to display to the user.
+     */
     private fun addDayTimes(dayTimes: MutableList<String>) {
         val layout = findViewById<LinearLayout>(R.id.timesLayout)
         val dateTitle = findViewById<TextView>(R.id.dateTitle)
@@ -218,15 +221,19 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    /**
+     * Shows the [message] as a toast to the user.
+     */
     private fun showToast(message: String) {
         Toast.makeText(this@MainActivity, message, Toast.LENGTH_SHORT)
             .show()
     }
 
     /**
-     * Check if user has internet connection
+     * Check if user has internet connection.
+     * Displays a toast to the user with [message] if internet connection is not found.
      */
-    private fun hasInternetConnection(): Boolean {
+    private fun hasInternetConnection(message: String? = null): Boolean {
         val context = this@MainActivity
         val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as
                 ConnectivityManager
@@ -236,26 +243,43 @@ class MainActivity : ComponentActivity() {
 
         val hasInternet = capabilities?.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) == true
 
-        if (!hasInternet) {
-            showToast("Check internet connection and try again")
+        if (!hasInternet && message != null) {
+            showToast(message)
         }
 
         return hasInternet
     }
 
+    /**
+     * Fetches the next adjacent month on a background thread and stores it in memory.
+     */
     private fun fetchNextMonthTimes() {
         nextMonthJob = lifecycleScope.launch {
             withContext(Dispatchers.IO) {
+                waitForInternet()
                 PTManager.fetchNextMonth()
             }
         }
     }
 
+    /**
+     * Fetches the previous adjacent month on a background thread and stores it in memory.
+     */
     private fun fetchPrevMonthTimes() {
         prevMonthJob = lifecycleScope.launch {
             withContext(Dispatchers.IO) {
+                waitForInternet()
                 PTManager.fetchPrevMonth()
             }
+        }
+    }
+
+    /**
+     * Loops until internet detection is found.
+     */
+    private fun waitForInternet() {
+        while (!hasInternetConnection()) {
+            run {}
         }
     }
 
