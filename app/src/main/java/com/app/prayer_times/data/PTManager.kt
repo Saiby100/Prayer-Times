@@ -84,14 +84,12 @@ object PTManager {
             list = nextTimesList
 
             nextTimesList = mutableListOf()
-            logMsg("prevTimesList = ${month - 1}; timesList = $month")
         } else if (year == prevYear && month == prevMonth) {
             //Use previous month stored in memory
             nextTimesList = timesList
             list = prevTimesList
 
             prevTimesList = mutableListOf()
-            logMsg("nextTimesList = ${month + 1}; timesList = $month")
         } else {
             //New request
             list = PTScraper.getPrayerTimesMonth(year, month)
@@ -134,7 +132,6 @@ object PTManager {
         val list = PTScraper.getPrayerTimesMonth(nextYear, nextMonth)
         if (list != null) {
             nextTimesList = list
-            logMsg("nextTimesList = $nextMonth")
         }
     }
 
@@ -146,7 +143,6 @@ object PTManager {
         val list = PTScraper.getPrayerTimesMonth(prevYear, prevMonth)
         if (list != null) {
             prevTimesList = list
-            logMsg("prevTimesList = $prevMonth")
         }
     }
 
