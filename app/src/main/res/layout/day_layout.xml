@@ -4,78 +4,33 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/gradient_background"
+    android:background="@color/dark_blue_primary"
     android:paddingHorizontal="32dp">
 
     <TextView
         android:id="@+id/cityTitle"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Cape Town"
+        android:layout_marginBottom="10dp"
+        android:fontFamily="@font/inter_semi_bold"
+        android:text="@string/area_name"
         android:textAlignment="center"
         android:textColor="@color/white"
         android:textSize="28sp"
-        android:layout_marginBottom="10dp"
-        android:fontFamily="@font/inter_semi_bold"
         app:layout_constraintBottom_toTopOf="@+id/linearLayout"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
 
     <LinearLayout
         android:id="@+id/linearLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@drawable/card_background"
         android:orientation="vertical"
         android:paddingTop="20dp"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintBottom_toTopOf="@+id/indicator"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:background="#F9F9F9">
-
-            <Button
-                android:id="@+id/prevDayBtn"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:background="@android:color/transparent"
-                android:elevation="0dp"
-                android:fontFamily="@font/inter_semi_bold"
-                android:text="&lt;"
-                android:textColor="@color/text_color_dark"
-                android:textSize="20sp"
-                android:textAllCaps="false"
-                android:stateListAnimator="@null"/>
-
-            <TextView
-                android:id="@+id/dateTitle"
-                android:textAlignment="center"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_weight="2"
-                android:fontFamily="@font/inter_semi_bold"
-                android:text="Date"
-                android:textColor="@color/text_color_dark"
-                android:textSize="20sp" />
-
-            <Button
-                android:id="@+id/nextDayBtn"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:background="@android:color/transparent"
-                android:elevation="0dp"
-                android:fontFamily="@font/inter_semi_bold"
-                android:text="&gt;"
-                android:textColor="@color/text_color_dark"
-                android:textSize="20sp"
-                android:textAllCaps="false"
-                android:stateListAnimator="@null"/>
-
-        </LinearLayout>
 
         <ScrollView
             android:layout_width="match_parent"
@@ -92,5 +47,65 @@
 
             </LinearLayout>
         </ScrollView>
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/white"
+            android:background="@drawable/button_bg"
+            android:text="@string/today"
+            android:fontFamily="@font/inter_medium"
+            android:textSize="16sp"
+            android:layout_gravity="center"
+            android:elevation="0dp"
+            android:textAllCaps="false"/>
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/indicator"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/linearLayout">
+
+        <ImageButton
+            android:id="@+id/prevDayBtn"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_gravity="center_vertical"
+            android:background="@drawable/button_bg"
+            android:elevation="0dp"
+            android:fontFamily="@font/inter_semi_bold"
+            android:src="@drawable/left_arrow"
+            android:stateListAnimator="@null"
+            android:textColor="@color/text_color_dark" />
+
+        <TextView
+            android:id="@+id/dateTitle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_weight="2"
+            android:fontFamily="@font/inter_semi_bold"
+            android:text="@string/date"
+            android:textAlignment="center"
+            android:textColor="@color/white"
+            android:textSize="20sp" />
+
+
+        <ImageButton
+            android:id="@+id/nextDayBtn"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_gravity="center_vertical"
+            android:background="@drawable/button_bg"
+            android:elevation="0dp"
+            android:fontFamily="@font/inter_semi_bold"
+            android:src="@drawable/right_arrow"
+            android:stateListAnimator="@null"
+            android:textColor="@color/text_color_dark" />
     </LinearLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>

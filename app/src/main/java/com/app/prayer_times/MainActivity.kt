@@ -7,6 +7,7 @@ import android.net.NetworkCapabilities
 import android.os.Bundle
 import android.util.Log
 import android.widget.Button
+import android.widget.ImageButton
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
@@ -125,8 +126,8 @@ class MainActivity : ComponentActivity() {
         PTManager.setDateVars(date.year, date.month)
 
         //Bind actions to next/prev buttons
-        val nextDayBtn: Button = findViewById(R.id.nextDayBtn)
-        val prevDayBtn: Button = findViewById(R.id.prevDayBtn)
+        val nextDayBtn: ImageButton = findViewById(R.id.nextDayBtn)
+        val prevDayBtn: ImageButton = findViewById(R.id.prevDayBtn)
 
         nextDayBtn.setOnClickListener { nextDay() }
         prevDayBtn.setOnClickListener { prevDay() }
@@ -166,8 +167,8 @@ class MainActivity : ComponentActivity() {
             }
         }
 
-        val prevDayBtn = findViewById<Button>(R.id.prevDayBtn)
-        val nextDayBtn = findViewById<Button>(R.id.nextDayBtn)
+        val prevDayBtn = findViewById<ImageButton>(R.id.prevDayBtn)
+        val nextDayBtn = findViewById<ImageButton>(R.id.nextDayBtn)
 
         prevDayBtn.isEnabled = false
         nextDayBtn.isEnabled = false
