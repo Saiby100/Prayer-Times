@@ -14,4 +14,9 @@
     <color name="theme_list_item">#EEEEEF</color>
     <color name="text_color_light">#5D5B5B</color>
     <color name="text_color_dark">#5E5B5B</color>
+
+    <color name="dark_blue_primary">#232634</color>
+    <color name="dark_blue_secondary">#303446</color>
+    <color name="accent">#6E61FF</color>
+
 </resources>
