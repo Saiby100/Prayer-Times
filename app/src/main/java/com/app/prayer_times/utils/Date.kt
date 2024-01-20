@@ -1,5 +1,7 @@
 package com.app.prayer_times.utils
 
+import android.util.Log
+import java.lang.NumberFormatException
 import java.util.Calendar
 
 class Date {
@@ -13,10 +15,18 @@ class Date {
     var month: Int
     var day: Int
 
+    private val currentDay: Int
+    private val currentMonth: Int
+    private val currentYear: Int
+
     init {
         year = calendar.get(Calendar.YEAR)
         month = calendar.get(Calendar.MONTH) + 1
         day = calendar.get(Calendar.DAY_OF_MONTH)
+
+        currentYear = year
+        currentMonth = month
+        currentDay = day
     }
 
     /**
@@ -50,18 +60,6 @@ class Date {
     }
 
     /**
-     * Sets the current year to [yearInput] and month to [monthInput].
-     */
-    fun setDate(yearInput: Int, monthInput: Int) {
-        calendar.set(Calendar.YEAR, yearInput)
-        calendar.set(Calendar.MONTH, monthInput-1)
-
-        year = calendar.get(Calendar.YEAR)
-        month = calendar.get(Calendar.MONTH) + 1
-        day = calendar.get(Calendar.DAY_OF_MONTH)
-    }
-
-    /**
      * Returns the next month starting at [startMonth].
      * @return the next month (1 - 12).
      */
@@ -86,16 +84,37 @@ class Date {
     }
 
     /**
-     * Returns the current date of this Date instance.
-     * [length] specifies the format of the date.
-     * @return the date in 'LONG' or 'SHORT' format.
+     * Gets the index of the first time in [times] that occurs after the current time.
+     * @return The index of the first time following the current time.
      */
-    fun fullDate(length: String): String {
-        if (length == "LONG") {
-            return "$day ${monthString()} $year"
-        } else {
-            return "$$day ${monthString().substring(0, 3)} $year"
+    fun timeCmp(times: List<String>): Int {
+        val hour: Int = calendar.get(Calendar.HOUR_OF_DAY)
+        val minute: Int = calendar.get(Calendar.MINUTE)
+
+        for (i in times.indices) {
+            val timeSplit: List<String> = times[i].split(":")
+
+            if (timeSplit.size != 2)
+                return -1
+
+            val hourInput: Int = timeSplit[0].toInt()
+            val minInput: Int = timeSplit[1].toInt()
+
+            if (hour < hourInput) {
+                return i
+            } else if (hour == hourInput && minute < minInput) {
+                return i
+            }
         }
+
+        return -1
+    }
+
+    /**
+     * Checks if the input date matches the current date.
+     */
+    fun isToday(): Boolean {
+        return day == currentDay && month == currentMonth && year == currentYear
     }
 }
 
