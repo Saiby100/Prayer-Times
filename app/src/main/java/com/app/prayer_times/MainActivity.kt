@@ -176,8 +176,7 @@ class MainActivity : ComponentActivity() {
                         date.day,
                         nextMonthJob,
                         prevMonthJob,
-                        this@MainActivity,
-                        asrType)
+                        this@MainActivity)
                 }
                 if (dayTimes != null) {
                     addDayTimes(dayTimes)
@@ -210,9 +209,17 @@ class MainActivity : ComponentActivity() {
         dateTitle.text = "${date.day}/${date.month}/${date.year}"
         layout.removeAllViews()
 
-        //TODO: Highlight button with nearest time
-        for (time in dayTimes) {
-            layout.addView(createButtonItem(time))
+        val targetIndex: Int =  if (date.isToday()) {
+            date.timeCmp(dayTimes)
+        } else {
+            -1
+        }
+
+        for (i in 0..< dayTimes.size) {
+            layout.addView(createButtonItem(
+                "${PTManager.prayerTitles[i]}:${dayTimes[i]}",
+                targetIndex == i
+            ))
         }
     }
 
