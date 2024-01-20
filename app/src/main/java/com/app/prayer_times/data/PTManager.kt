@@ -160,7 +160,8 @@ object PTManager {
         day: Int,
         nextMonthJob: Job,
         prevMonthJob: Job,
-        context: Context
+        context: Context,
+        asrType: String?
     ): MutableList<String>? {
         getPrayerTimesMonth(year, month, nextMonthJob, prevMonthJob, context)
 
@@ -178,8 +179,17 @@ object PTManager {
                 return null
             }
 
+            var ignore = "None"
+            if (asrType == "Hanafi") {
+                ignore = "Asr(S)"
+            } else if (asrType == "Shafi") {
+                ignore = "Asr(H)"
+            }
+
             for ((j, i) in (startIndex .. endIndex).withIndex()) {
-                result.add("${prayerTitles[j]}: ${timesList[i]}")
+                if (prayerTitles[j] != ignore) {
+                    result.add("${prayerTitles[j]}: ${timesList[i]}")
+                }
             }
             return result
         }

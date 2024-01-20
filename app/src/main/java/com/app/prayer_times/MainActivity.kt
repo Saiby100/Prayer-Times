@@ -29,11 +29,19 @@ class MainActivity : ComponentActivity() {
     private lateinit var nextMonthJob: Job
     private lateinit var prevMonthJob: Job
 
+    private var asrType: String? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         sharedPreferences = getSharedPreferences("user_settings", Context.MODE_PRIVATE)
         val area: String? = getSetting("user_area")
+        asrType = getSetting("asr_type")
+
+        if (asrType == null) {
+            asrType = "Shafi"
+            saveSetting("asr_type", asrType!!)
+        }
 
         if (area == null) {
             setContentView(R.layout.select_area_layout)
@@ -45,15 +53,6 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    private fun saveSetting(key: String, value: String) {
-        val editor = sharedPreferences.edit()
-        editor.putString(key, value)
-        editor.apply()
-    }
-
-    private fun getSetting(key: String): String? {
-        return sharedPreferences.getString(key, null)
-    }
 
     private fun initAreaLayout(): Boolean {
         val linearLayout = findViewById<LinearLayout>(R.id.areaLayout)
@@ -137,11 +136,6 @@ class MainActivity : ComponentActivity() {
         initTimesLayout(-1)
     }
 
-    private fun initMonthLayout() {
-        //TODO: Implement
-        setContentView(R.layout.month_layout)
-    }
-
     private fun nextDay() {
         val oldMonth = date.month
         date.changeDay(1)
@@ -182,7 +176,8 @@ class MainActivity : ComponentActivity() {
                         date.day,
                         nextMonthJob,
                         prevMonthJob,
-                        this@MainActivity)
+                        this@MainActivity,
+                        asrType)
                 }
                 if (dayTimes != null) {
                     addDayTimes(dayTimes)
@@ -281,6 +276,16 @@ class MainActivity : ComponentActivity() {
         while (!hasInternetConnection()) {
             run {}
         }
+    }
+
+    private fun saveSetting(key: String, value: String) {
+        val editor = sharedPreferences.edit()
+        editor.putString(key, value)
+        editor.apply()
+    }
+
+    private fun getSetting(key: String): String? {
+        return sharedPreferences.getString(key, null)
     }
 
     private fun logMsg(message: String) {
