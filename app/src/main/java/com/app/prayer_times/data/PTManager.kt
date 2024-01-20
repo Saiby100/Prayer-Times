@@ -11,7 +11,7 @@ object PTManager {
     private val date = Date()
 
     private var timesList: MutableList<String> = mutableListOf()
-    private var prayerTitles: MutableList<String> = mutableListOf()
+    var prayerTitles: MutableList<String> = mutableListOf()
 
     private var nextTimesList: MutableList<String> = mutableListOf()
     private var prevTimesList: MutableList<String> = mutableListOf()
@@ -160,8 +160,7 @@ object PTManager {
         day: Int,
         nextMonthJob: Job,
         prevMonthJob: Job,
-        context: Context,
-        asrType: String?
+        context: Context
     ): MutableList<String>? {
         getPrayerTimesMonth(year, month, nextMonthJob, prevMonthJob, context)
 
@@ -179,17 +178,8 @@ object PTManager {
                 return null
             }
 
-            var ignore = "None"
-            if (asrType == "Hanafi") {
-                ignore = "Asr(S)"
-            } else if (asrType == "Shafi") {
-                ignore = "Asr(H)"
-            }
-
-            for ((j, i) in (startIndex .. endIndex).withIndex()) {
-                if (prayerTitles[j] != ignore) {
-                    result.add("${prayerTitles[j]}: ${timesList[i]}")
-                }
+            for (i in startIndex .. endIndex) {
+                result.add(timesList[i])
             }
             return result
         }
