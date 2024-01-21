@@ -29,25 +29,23 @@ class MainActivity : ComponentActivity() {
     private lateinit var nextMonthJob: Job
     private lateinit var prevMonthJob: Job
 
-    private var asrType: String? = null
+    private var ignoreAsrType: String? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         sharedPreferences = getSharedPreferences("user_settings", Context.MODE_PRIVATE)
         val area: String? = getSetting("user_area")
-        asrType = getSetting("asr_type")
+        ignoreAsrType = getSetting("asr_type")
 
-        if (asrType == null) {
-            asrType = "Shafi"
-            saveSetting("asr_type", asrType!!)
+        if (ignoreAsrType == null) {
+            ignoreAsrType = "Asr(H)"
+            saveSetting("asr_type", ignoreAsrType!!)
         }
 
         if (area == null) {
-            setContentView(R.layout.select_area_layout)
             initAreaLayout()
         } else {
-            setContentView(R.layout.day_layout)
             PTManager.initArea(area)
             initDayLayout(area)
         }
@@ -55,6 +53,8 @@ class MainActivity : ComponentActivity() {
 
 
     private fun initAreaLayout(): Boolean {
+        setContentView(R.layout.select_area_layout)
+
         val linearLayout = findViewById<LinearLayout>(R.id.areaLayout)
 
         if (!hasInternetConnection("Unable to connect to internet")) {
@@ -104,9 +104,9 @@ class MainActivity : ComponentActivity() {
         button.isAllCaps = false
 
         if (highlighted) {
-            button.background = resources.getDrawable(R.drawable.button_bg_highlighted)
+            button.background = resources.getDrawable(R.drawable.btn_ripple_highlighted)
         } else {
-            button.background = resources.getDrawable(R.drawable.button_bg)
+            button.background = resources.getDrawable(R.drawable.btn_ripple)
         }
         return button
     }
@@ -206,7 +206,8 @@ class MainActivity : ComponentActivity() {
         val layout = findViewById<LinearLayout>(R.id.timesLayout)
         val dateTitle = findViewById<TextView>(R.id.dateTitle)
 
-        dateTitle.text = "${date.day}/${date.month}/${date.year}"
+        val dateString = "${date.day}/${date.month}/${date.year}"
+        dateTitle.text = dateString
         layout.removeAllViews()
 
         val targetIndex: Int =  if (date.isToday()) {
@@ -216,10 +217,14 @@ class MainActivity : ComponentActivity() {
         }
 
         for (i in 0..< dayTimes.size) {
-            layout.addView(createButtonItem(
-                "${PTManager.prayerTitles[i]}:${dayTimes[i]}",
-                targetIndex == i
-            ))
+            val prayerTitle = PTManager.prayerTitles[i]
+
+            if (prayerTitle != ignoreAsrType) {
+                layout.addView(createButtonItem(
+                    "${prayerTitle}: ${dayTimes[i]}",
+                    targetIndex == i
+                ))
+            }
         }
     }
 
