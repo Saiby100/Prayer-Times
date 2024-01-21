@@ -17,6 +17,7 @@
 
     <color name="dark_blue_primary">#232634</color>
     <color name="dark_blue_secondary">#303446</color>
+    <color name="dark_blue_light">#898EA1</color>
     <color name="accent">#6E61FF</color>
 
 </resources>
