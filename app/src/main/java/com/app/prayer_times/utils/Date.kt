@@ -116,6 +116,10 @@ class Date {
     fun isToday(): Boolean {
         return day == currentDay && month == currentMonth && year == currentYear
     }
+
+    override fun toString(): String {
+        return "$day ${monthString()} $year"
+    }
 }
 
 fun main() {
