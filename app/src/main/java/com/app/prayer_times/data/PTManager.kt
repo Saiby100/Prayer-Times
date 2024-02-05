@@ -4,8 +4,11 @@ import android.content.Context
 import android.util.Log
 import kotlinx.coroutines.runBlocking
 import com.app.prayer_times.utils.Date
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.launch
 
 object PTManager {
     private val date = Date()
@@ -15,15 +18,11 @@ object PTManager {
 
     private var nextTimesList: MutableList<String> = mutableListOf()
     private var prevTimesList: MutableList<String> = mutableListOf()
-    private var nextYear: Int = 0
-    private var nextMonth: Int = 0
-    private var prevYear: Int = 0
-    private var prevMonth: Int = 0
 
-
-    private var thisMonth: Int = date.month
-    private var thisYear: Int = date.year
     private lateinit var thisArea: String
+
+    private lateinit var nextMonthJob: Job
+    private lateinit var prevMonthJob: Job
 
     /**
      * Initializes area for PTScraper.
@@ -38,150 +37,139 @@ object PTManager {
      * @return array of area strings.
      */
     suspend fun getAreaTitles(): Array<String>? {
-        return PTScraper.getAreaTitles()
+        return withContext(Dispatchers.IO) { PTScraper.getAreaTitles() }
     }
 
-    /**
-     * Gets the prayer times for [year] and [month].
-     * Parameters [nextMonthJob] and [prevMonthJob] needed to ensure job completion
-     * before assignment.
-     * Parameter [context] used for storing in local storage.
-     */
-    suspend fun getPrayerTimesMonth(
-        year: Int,
-        month: Int,
-        nextMonthJob: Job,
-        prevMonthJob: Job,
-        context: Context
-    ): MutableList<String>? {
-        if (thisYear == year && thisMonth == month && timesList.size != 0) {
-            return timesList
+    suspend fun getTodayTimes(context: Context): MutableList<String>? {
+        return withContext(Dispatchers.IO) {
+            logMsg(date.toString())
+            logMsg("Fetching current times")
+            timesList = getMonthTimes(context, date.month, date.year)!!
+            fetchNextMonthTimes(context)
+            fetchPrevMonthTimes(context)
+            getDayTimes()
         }
+    }
 
-        var list: MutableList<String>? = mutableListOf()
+    suspend fun getNextDayTimes(context: Context): MutableList<String>? {
+        return withContext(Dispatchers.IO) {
+            date.changeDay(1)
+            if (date.day == 1) {
+                logMsg("Moved into next month")
+                nextMonthJob.join()
+                prevMonthJob.cancel()
 
-        //Complete fetching adjacent months
-        if (isAdjacent(month)) {
-            nextMonthJob.join()
-            prevMonthJob.join()
-        }
-
-        if (PTDataStore.hasLocalData(thisArea, year, month, context)) {
-            //Fetch from local storage
-            if (month == prevMonth) {
-                nextTimesList = timesList
-            } else if (month == nextMonth) {
+                //make prev month current month
                 prevTimesList = timesList
+                //make current month next month
+                timesList = nextTimesList
+                //Thread to fetch next month
+                fetchNextMonthTimes(context)
             }
 
+            getDayTimes()
+        }
+    }
+
+    suspend fun getPrevDayTimes(context: Context): MutableList<String>? {
+        return withContext(Dispatchers.IO) {
+            val oldDay = date.day
+            date.changeDay(-1)
+            if (date.day > oldDay) {
+                logMsg("Moved into previous month")
+                prevMonthJob.join()
+                nextMonthJob.cancel()
+
+                //make next month current month
+                nextTimesList = timesList
+                //make current month previous month
+                timesList = prevTimesList
+                //Thread to fetch previous month
+                fetchPrevMonthTimes(context)
+            }
+
+            getDayTimes()
+        }
+    }
+
+    suspend fun getMonthTimes(context: Context, month: Int, year: Int): MutableList<String>? {
+        val list: MutableList<String>?
+
+        if (hasLocalData(year, month, context)) {
             list = PTDataStore.getPrayerTimes(thisArea, year, month, context)
-            prayerTitles.clear()
-            prayerTitles.addAll(PTDataStore.titles)
 
-        } else if (year == nextYear && month == nextMonth) {
-            //Use next month stored in memory
-            prevTimesList = timesList
-            list = nextTimesList
-
-            nextTimesList = mutableListOf()
-        } else if (year == prevYear && month == prevMonth) {
-            //Use previous month stored in memory
-            nextTimesList = timesList
-            list = prevTimesList
-
-            prevTimesList = mutableListOf()
-        } else {
-            //New request
-            list = PTScraper.getPrayerTimesMonth(year, month)
-            prayerTitles.clear()
-            prayerTitles.addAll(PTScraper.prayerTitles)
-
-            //Store this response if it's the current year and month
-            if (thisYear == year && thisMonth == month) {
-                PTDataStore.savePrayerTimes(
-                    list,
-                    thisArea,
-                    prayerTitles,
-                    thisYear,
-                    thisMonth,
-                    context
-                )
+            if (prayerTitles.size == 0) {
+                prayerTitles.addAll(PTDataStore.titles)
             }
+            return list
         }
-        setDateVars(year, month)
 
-        if (list != null) {
-            timesList = list
+        list = PTScraper.getPrayerTimesMonth(year, month)
+        if (date.month == month && date.year == year && list != null) {
+            PTDataStore.savePrayerTimes(
+                list,
+                thisArea,
+                prayerTitles,
+                year,
+                month,
+                context
+            )
         }
+
+        if (prayerTitles.size == 0) {
+            prayerTitles.addAll(PTScraper.prayerTitles)
+        }
+
         return list
     }
 
-    /**
-     * Checks if [month] is the same as the previous or next month.
-     * @return true if [month] is same as previous or next one, false otherwise.
-     */
-    private fun isAdjacent(month: Int): Boolean {
-        return month == prevMonth || month == nextMonth
+    private fun getDayTimes(): MutableList<String>? {
+        if (timesList.size == 0) {
+            logMsg("Times list is empty")
+            return null
+        }
+
+        val size = prayerTitles.size
+        val result: MutableList<String> = mutableListOf()
+
+        // Get all times for the day and return it
+        val startIndex = (date.day - 1) + (size - 1) * (date.day - 1)
+        val endIndex = startIndex + 5
+
+        if (endIndex >= timesList.size) {
+            return null
+        }
+
+        for (i in startIndex .. endIndex) {
+            result.add(timesList[i])
+        }
+        return result
     }
 
-    /**
-     * Fetches and stores next month's times in local storage.
-     * Intended to be called in the background and stored as next month.
-     */
-    suspend fun fetchNextMonth() {
-        val list = PTScraper.getPrayerTimesMonth(nextYear, nextMonth)
-        if (list != null) {
-            nextTimesList = list
+    private suspend fun fetchNextMonthTimes(context: Context) {
+        nextMonthJob = CoroutineScope(Dispatchers.IO).launch {
+            val month = date.getNextMonth(date.month)
+            val year = if (month == 1) {
+                date.year + 1
+            } else {
+                date.year
+            }
+            nextTimesList = getMonthTimes(context, month, year)!!
+            logMsg("Fetching next month times completed")
         }
     }
 
-    /**
-     * Fetches and stores previous month's times in local storage.
-     * Intended to be called in the background and stored as previous month.
-     */
-    suspend fun fetchPrevMonth() {
-        val list = PTScraper.getPrayerTimesMonth(prevYear, prevMonth)
-        if (list != null) {
-            prevTimesList = list
-        }
-    }
-
-    /**
-     * Takes the [year], [month], and [day] parameters and fetches the appropriate
-     * times.
-     * The [nextMonthJob] and [prevMonthJob] parameters are the threads that fetch
-     * adjacent months.
-     * [context] is used to store the data in local storage if necessary.
-     * @return a list of times for the specified [day].
-     */
-    suspend fun getPrayerTimesDay(
-        year: Int,
-        month: Int,
-        day: Int,
-        nextMonthJob: Job,
-        prevMonthJob: Job,
-        context: Context
-    ): MutableList<String>? {
-        getPrayerTimesMonth(year, month, nextMonthJob, prevMonthJob, context)
-
-        return if (timesList.size == 0) {
-           null
-        } else {
-            val size = prayerTitles.size
-            val result: MutableList<String> = mutableListOf()
-
-            // Get all times for the day and return it
-            val startIndex = (day - 1) + (size - 1) * (day - 1)
-            val endIndex = startIndex + 5
-
-            if (endIndex >= timesList.size) {
-                return null
+    private suspend fun fetchPrevMonthTimes(context: Context) {
+        prevMonthJob = CoroutineScope(Dispatchers.IO).launch {
+            val month = date.getPrevMonth(date.month)
+            val year = if (month == 12) {
+                date.year - 1
+            } else {
+                date.year
             }
 
-            for (i in startIndex .. endIndex) {
-                result.add(timesList[i])
-            }
-            return result
+            prevTimesList = getMonthTimes(context, month, year)!!
+            logMsg("Fetching previous month times completed")
         }
     }
 
@@ -192,25 +180,6 @@ object PTManager {
      */
     fun hasLocalData(year: Int, month: Int, context: Context): Boolean {
         return PTDataStore.hasLocalData(thisArea, year, month, context)
-    }
-
-    fun setDateVars(year: Int, month: Int) {
-        thisYear = year
-        thisMonth = month
-
-        prevMonth = date.getPrevMonth(month)
-        prevYear = if (prevMonth == 12) {
-            year - 1
-        } else {
-            year
-        }
-
-        nextMonth = date.getNextMonth(month)
-        nextYear = if (nextMonth == 1) {
-            year + 1
-        } else {
-            year
-        }
     }
 
     private fun logMsg(message: String) {
