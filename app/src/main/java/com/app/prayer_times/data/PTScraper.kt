@@ -62,24 +62,23 @@ object PTScraper {
       myQueueNum++
       waitForThread(myQueueNum)
 
-      prayerTitles.clear()
-
       val doc: Document = Jsoup.connect("$timesUrl/$year-$month").get()
       val table = doc.select("table.table-striped")
       val tableData = table.select("td")
 
       // Initialize the titles
-      val thead = table.select("thead")
-      if (thead != null) {
-         val tHeaders = thead[0].select("th")
-         for (header in tHeaders) {
-            prayerTitles.add(header.text())
+      if (prayerTitles.size == 0) {
+         val thead = table.select("thead")
+         if (thead != null) {
+            val tHeaders = thead[0].select("th")
+            for (header in tHeaders) {
+               prayerTitles.add(header.text())
+            }
+            // Remove first 2 titles (date and day)
+            prayerTitles.removeAt(0)
+            prayerTitles.removeAt(0)
          }
-         // Remove first 2 titles (date and day)
-         prayerTitles.removeAt(0)
-         prayerTitles.removeAt(0)
       }
-
 
       val timesList: MutableList<String> = mutableListOf()
 
