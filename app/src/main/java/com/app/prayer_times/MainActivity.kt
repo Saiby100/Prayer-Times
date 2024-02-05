@@ -64,7 +64,7 @@ class MainActivity : ComponentActivity() {
 
         lifecycleScope.launch {
             try {
-                val areaStrings: Array<String>? = withContext(Dispatchers.IO) { PTManager.getAreaTitles() }
+                val areaStrings: Array<String>? = PTManager.getAreaTitles()
                 if (areaStrings != null) {
                     var button: Button
                     for (area in areaStrings) {
@@ -122,8 +122,6 @@ class MainActivity : ComponentActivity() {
         val cityTitle: TextView = findViewById(R.id.cityTitle)
         cityTitle.text = areaString
 
-        PTManager.setDateVars(date.year, date.month)
-
         //Bind actions to next/prev buttons
         val nextDayBtn: ImageButton = findViewById(R.id.nextDayBtn)
         val prevDayBtn: ImageButton = findViewById(R.id.prevDayBtn)
@@ -131,26 +129,38 @@ class MainActivity : ComponentActivity() {
         nextDayBtn.setOnClickListener { nextDay() }
         prevDayBtn.setOnClickListener { prevDay() }
 
-        fetchNextMonthTimes()
-        fetchPrevMonthTimes()
         initTimesLayout(-1)
     }
 
     private fun nextDay() {
-        val oldMonth = date.month
         date.changeDay(1)
-
-        if(!initTimesLayout(oldMonth)) {
-            date.changeDay(-1)
+        lifecycleScope.launch {
+            try {
+                val dayTimes = PTManager.getNextDayTimes(this@MainActivity)
+                if (dayTimes != null) {
+                    addDayTimes(dayTimes)
+                } else {
+                    showToast("Day times is null")
+                }
+            } catch (e: Exception) {
+                showToast("Failed to get next month")
+            }
         }
     }
 
     private fun prevDay() {
-        val oldMonth = date.month
         date.changeDay(-1)
-
-        if(!initTimesLayout(oldMonth)) {
-           date.changeDay(1)
+        lifecycleScope.launch {
+            try {
+                val dayTimes = PTManager.getPrevDayTimes(this@MainActivity)
+                if (dayTimes != null) {
+                    addDayTimes(dayTimes)
+                } else {
+                    showToast("Day times is null")
+                }
+            } catch (e: Exception) {
+                showToast("Failed to get previous month")
+            }
         }
     }
 
@@ -169,24 +179,11 @@ class MainActivity : ComponentActivity() {
 
         lifecycleScope.launch {
             try {
-                val dayTimes: MutableList<String>? = withContext(Dispatchers.IO) {
-                    PTManager.getPrayerTimesDay(
-                        date.year,
-                        date.month,
-                        date.day,
-                        nextMonthJob,
-                        prevMonthJob,
-                        this@MainActivity)
-                }
+                val dayTimes: MutableList<String>? = PTManager.getTodayTimes(this@MainActivity)
                 if (dayTimes != null) {
                     addDayTimes(dayTimes)
                 } else {
                     showToast("No prayer times found")
-                }
-                if (oldMonth == date.getPrevMonth(date.month)) {
-                    fetchNextMonthTimes()
-                } else if (oldMonth == date.getNextMonth(date.month)) {
-                    fetchPrevMonthTimes()
                 }
 
                 prevDayBtn.isEnabled = true
@@ -255,30 +252,6 @@ class MainActivity : ComponentActivity() {
         }
 
         return hasInternet
-    }
-
-    /**
-     * Fetches the next adjacent month on a background thread and stores it in memory.
-     */
-    private fun fetchNextMonthTimes() {
-        nextMonthJob = lifecycleScope.launch {
-            withContext(Dispatchers.IO) {
-                waitForInternet()
-                PTManager.fetchNextMonth()
-            }
-        }
-    }
-
-    /**
-     * Fetches the previous adjacent month on a background thread and stores it in memory.
-     */
-    private fun fetchPrevMonthTimes() {
-        prevMonthJob = lifecycleScope.launch {
-            withContext(Dispatchers.IO) {
-                waitForInternet()
-                PTManager.fetchPrevMonth()
-            }
-        }
     }
 
     /**
