@@ -41,17 +41,6 @@ class Date {
     }
 
     /**
-     * Adds [monthVal] to the current month.
-     * Day and Year will update automatically if necessary.
-     */
-    fun changeMonth(monthVal: Int) {
-        calendar.add(Calendar.MONTH, monthVal)
-        year = calendar.get(Calendar.YEAR)
-        month = calendar.get(Calendar.MONTH) + 1
-        day = calendar.get(Calendar.DAY_OF_MONTH)
-    }
-
-    /**
      * Gets the month name for the current month.
      * @return the current month.
      */
