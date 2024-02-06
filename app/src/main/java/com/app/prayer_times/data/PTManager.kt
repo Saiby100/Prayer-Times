@@ -104,7 +104,7 @@ class PTManager (startDate: Date = Date()) {
         }
     }
 
-    suspend fun getMonthTimes(context: Context, month: Int, year: Int): MutableList<String>? {
+    private suspend fun getMonthTimes(context: Context, month: Int, year: Int): MutableList<String>? {
         val list: MutableList<String>?
 
         if (hasLocalData(year, month, context)) {
@@ -120,6 +120,11 @@ class PTManager (startDate: Date = Date()) {
         waitForInternet(context)
         logMsg("Scraping new data")
         list = PTScraper.getPrayerTimesMonth(year, month)
+
+        if (prayerTitles.size == 0) {
+            prayerTitles.addAll(PTScraper.prayerTitles)
+        }
+
         if (date.month == month && date.year == year && list != null) {
             PTDataStore.savePrayerTimes(
                 list,
@@ -130,11 +135,6 @@ class PTManager (startDate: Date = Date()) {
                 context
             )
         }
-
-        if (prayerTitles.size == 0) {
-            prayerTitles.addAll(PTScraper.prayerTitles)
-        }
-
         return list
     }
 
@@ -189,7 +189,7 @@ class PTManager (startDate: Date = Date()) {
         }
     }
 
-    suspend fun waitForInternet(context: Context): Unit = suspendCoroutine { continuation ->
+    private suspend fun waitForInternet(context: Context): Unit = suspendCoroutine { continuation ->
         val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as
                 ConnectivityManager
         val networkCallback = object : ConnectivityManager.NetworkCallback() {
@@ -212,9 +212,7 @@ class PTManager (startDate: Date = Date()) {
         val network = connectivityManager.activeNetwork
         val capabilities = connectivityManager.getNetworkCapabilities(network)
 
-        val hasInternet = capabilities?.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) == true
-
-        return hasInternet
+        return capabilities?.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) == true
     }
 
     /**
@@ -222,7 +220,7 @@ class PTManager (startDate: Date = Date()) {
      * and [month]. The [context] is needed to check local storage.
      * @return true if data exists in local storage, false otherwise.
      */
-    fun hasLocalData(year: Int, month: Int, context: Context): Boolean {
+    private fun hasLocalData(year: Int, month: Int, context: Context): Boolean {
         return PTDataStore.hasLocalData(thisArea, year, month, context)
     }
 
