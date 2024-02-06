@@ -190,12 +190,10 @@ class MainActivity : ComponentActivity() {
         for (i in 0..< dayTimes.size) {
             val prayerTitle = ptManager.prayerTitles[i]
 
-            if (prayerTitle != ignoreAsrType) {
-                layout.addView(createButtonItem(
-                    "${prayerTitle}: ${dayTimes[i]}",
-                    targetIndex == i
-                ))
-            }
+            layout.addView(createButtonItem(
+                "${prayerTitle}: ${dayTimes[i]}",
+                targetIndex == i
+            ))
         }
     }
 
