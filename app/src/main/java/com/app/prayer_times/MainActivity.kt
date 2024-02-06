@@ -122,6 +122,8 @@ class MainActivity : ComponentActivity() {
         val nextDayBtn: ImageButton = findViewById(R.id.nextDayBtn)
         val prevDayBtn: ImageButton = findViewById(R.id.prevDayBtn)
 
+        hasInternetConnection("Check internet connection")
+
         nextDayBtn.setOnClickListener { showPrayerTimes(1) }
         prevDayBtn.setOnClickListener { showPrayerTimes(-1) }
 
@@ -142,7 +144,7 @@ class MainActivity : ComponentActivity() {
         nextDayBtn.isEnabled = false
 
         lifecycleScope.launch {
-            try { //TODO: Catch network error (No internet)
+            try {
                 val dayTimes: MutableList<String>? = if (from < 0) {
                     ptManager.getPrevDayTimes(this@MainActivity)
                 } else if (from > 0) {
