@@ -7,28 +7,27 @@ import com.app.prayer_times.utils.Date
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.launch
 
-object PTManager {
-    private val date = Date()
+class PTManager (area: String, startDate: Date = Date()) {
+    private val thisArea: String
+    private val date: Date
 
-    private var timesList: MutableList<String> = mutableListOf()
     var prayerTitles: MutableList<String> = mutableListOf()
 
-    private var nextTimesList: MutableList<String> = mutableListOf()
     private var prevTimesList: MutableList<String> = mutableListOf()
-
-    private lateinit var thisArea: String
+    private var timesList: MutableList<String> = mutableListOf()
+    private var nextTimesList: MutableList<String> = mutableListOf()
 
     private lateinit var nextMonthJob: Job
     private lateinit var prevMonthJob: Job
 
-    /**
-     * Initializes area for PTScraper.
-     */
-    fun initArea(area: String) {
+    init {
+        date = startDate
         thisArea = area
+
         PTScraper.setArea(area)
     }
 
@@ -55,7 +54,7 @@ object PTManager {
         return withContext(Dispatchers.IO) {
             date.changeDay(1)
             if (date.day == 1) {
-                logMsg("Moved into next month")
+                logMsg("Moved into next month ${date.month}")
                 nextMonthJob.join()
                 prevMonthJob.cancel()
 
@@ -63,8 +62,7 @@ object PTManager {
                 prevTimesList = timesList
                 //make current month next month
                 timesList = nextTimesList
-                //Thread to fetch next month
-                fetchNextMonthTimes(context)
+                fetchNextMonthTimes(context, 3)
             }
 
             getDayTimes()
@@ -76,7 +74,7 @@ object PTManager {
             val oldDay = date.day
             date.changeDay(-1)
             if (date.day > oldDay) {
-                logMsg("Moved into previous month")
+                logMsg("Moved into previous month ${date.month}")
                 prevMonthJob.join()
                 nextMonthJob.cancel()
 
@@ -84,8 +82,7 @@ object PTManager {
                 nextTimesList = timesList
                 //make current month previous month
                 timesList = prevTimesList
-                //Thread to fetch previous month
-                fetchPrevMonthTimes(context)
+                fetchPrevMonthTimes(context, 3)
             }
 
             getDayTimes()
@@ -99,7 +96,7 @@ object PTManager {
             list = PTDataStore.getPrayerTimes(thisArea, year, month, context)
 
             if (prayerTitles.size == 0) {
-                prayerTitles.addAll(PTDataStore.titles)
+                prayerTitles.addAll(PTDataStore.prayerTitles)
             }
             return list
         }
@@ -146,8 +143,9 @@ object PTManager {
         return result
     }
 
-    private suspend fun fetchNextMonthTimes(context: Context) {
+    private suspend fun fetchNextMonthTimes(context: Context, delaySeconds: Long = 0) {
         nextMonthJob = CoroutineScope(Dispatchers.IO).launch {
+            delay(delaySeconds*1000)
             val month = date.getNextMonth(date.month)
             val year = if (month == 1) {
                 date.year + 1
@@ -155,12 +153,13 @@ object PTManager {
                 date.year
             }
             nextTimesList = getMonthTimes(context, month, year)!!
-            logMsg("Fetching next month times completed")
+            logMsg("Fetching next month ($month) times completed")
         }
     }
 
-    private suspend fun fetchPrevMonthTimes(context: Context) {
+    private suspend fun fetchPrevMonthTimes(context: Context, delaySeconds: Long = 0) {
         prevMonthJob = CoroutineScope(Dispatchers.IO).launch {
+            delay(delaySeconds*1000)
             val month = date.getPrevMonth(date.month)
             val year = if (month == 12) {
                 date.year - 1
@@ -169,7 +168,7 @@ object PTManager {
             }
 
             prevTimesList = getMonthTimes(context, month, year)!!
-            logMsg("Fetching previous month times completed")
+            logMsg("Fetching previous month ($month) times completed")
         }
     }
 
@@ -188,34 +187,4 @@ object PTManager {
 }
 
 fun main() = runBlocking {
-    val area: String = "Pretoria"
-    PTManager.initArea(area)
-
-    //GET MONTH
-//    val times = PTManager.getPrayerTimesMonth(2023, 12)
-//    if (times != null) {
-//        var temp = 0
-//        times.forEachIndexed { index, time ->
-//            if (index % 6 == 0 && index != 0) {
-//                println()
-//                temp = index
-//            }
-//            print("${PTManager.prayerTitles[index-temp]}: $time ")
-//        }
-//    }
-
-    //GET DAY
-//    val times = PTManager.getPrayerTimesDay(2023, 12, 28)
-//    val times2 = PTManager.getPrayerTimesDay(2023, 12, 29)
-//    println()
-//    if (times != null && times2 != null) {
-//        for (time in times) {
-//            println(time)
-//        }
-//
-//        println()
-//        for (time in times2) {
-//            println(time)
-//        }
-//    }
 }
