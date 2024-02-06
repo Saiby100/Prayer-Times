@@ -25,7 +25,7 @@ class MainActivity : ComponentActivity() {
     private val date = Date()
 
     private var ignoreAsrType: String? = null
-    private lateinit var ptManager: PTManager
+    private val ptManager: PTManager = PTManager(date)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -42,7 +42,7 @@ class MainActivity : ComponentActivity() {
         if (area == null) {
             initAreaLayout()
         } else {
-            ptManager = PTManager(area, date)
+            ptManager.initArea(area)
             initDayLayout(area)
         }
     }
@@ -108,7 +108,7 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun handleAreaSelected(areaString: String) {
-        ptManager = PTManager(areaString, date)
+        ptManager.initArea(areaString)
         saveSetting("user_area", areaString)
         initDayLayout(areaString)
     }
@@ -226,15 +226,6 @@ class MainActivity : ComponentActivity() {
         }
 
         return hasInternet
-    }
-
-    /**
-     * Loops until internet detection is found.
-     */
-    private fun waitForInternet() {
-        while (!hasInternetConnection()) {
-            run {}
-        }
     }
 
     private fun saveSetting(key: String, value: String) {

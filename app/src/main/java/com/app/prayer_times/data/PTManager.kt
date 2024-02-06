@@ -17,8 +17,8 @@ import kotlinx.coroutines.launch
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
-class PTManager (area: String, startDate: Date = Date()) {
-    private val thisArea: String
+class PTManager (startDate: Date = Date()) {
+    private lateinit var thisArea: String
     private val date: Date
 
     var prayerTitles: MutableList<String> = mutableListOf()
@@ -32,8 +32,10 @@ class PTManager (area: String, startDate: Date = Date()) {
 
     init {
         date = startDate
-        thisArea = area
+    }
 
+    fun initArea(area: String) {
+        thisArea = area
         PTScraper.setArea(area)
     }
 
