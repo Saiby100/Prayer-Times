@@ -9,7 +9,7 @@ import java.io.FileWriter
 import kotlinx.coroutines.runBlocking
 
 object PTDataStore {
-    val titles: MutableList<String> = mutableListOf()
+    val prayerTitles: MutableList<String> = mutableListOf()
     /**
      * This saves prayer times to local storage.
      */
@@ -58,11 +58,12 @@ object PTDataStore {
             val csvReader = CSVReader(fileReader)
 
             var array: Array<String>?
+            prayerTitles.clear()
 
             while (csvReader.readNext().also {array = it} != null) {
                 array?.let {
-                    if (!isFirstArrayRead && titles.size == 0) {
-                        titles.addAll(it)
+                    if (!isFirstArrayRead && prayerTitles.size == 0) {
+                        prayerTitles.addAll(it)
                         isFirstArrayRead = true
                     } else {
                         timesList.addAll(it)
