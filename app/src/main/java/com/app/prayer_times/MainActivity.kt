@@ -16,20 +16,16 @@ import androidx.core.content.ContextCompat
 import androidx.core.content.res.ResourcesCompat
 import androidx.lifecycle.lifecycleScope
 import com.app.prayer_times.data.PTManager
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import com.app.prayer_times.utils.Date
-import kotlinx.coroutines.Job
 
 class MainActivity : ComponentActivity() {
 
     private lateinit var sharedPreferences: SharedPreferences
     private val date = Date()
-    private lateinit var nextMonthJob: Job
-    private lateinit var prevMonthJob: Job
 
     private var ignoreAsrType: String? = null
+    private lateinit var ptManager: PTManager
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -46,7 +42,7 @@ class MainActivity : ComponentActivity() {
         if (area == null) {
             initAreaLayout()
         } else {
-            PTManager.initArea(area)
+            ptManager = PTManager(area, date)
             initDayLayout(area)
         }
     }
@@ -64,7 +60,7 @@ class MainActivity : ComponentActivity() {
 
         lifecycleScope.launch {
             try {
-                val areaStrings: Array<String>? = PTManager.getAreaTitles()
+                val areaStrings: Array<String>? = ptManager.getAreaTitles()
                 if (areaStrings != null) {
                     var button: Button
                     for (area in areaStrings) {
@@ -112,7 +108,7 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun handleAreaSelected(areaString: String) {
-        PTManager.initArea(areaString)
+        ptManager = PTManager(areaString, date)
         saveSetting("user_area", areaString)
         initDayLayout(areaString)
     }
@@ -126,51 +122,19 @@ class MainActivity : ComponentActivity() {
         val nextDayBtn: ImageButton = findViewById(R.id.nextDayBtn)
         val prevDayBtn: ImageButton = findViewById(R.id.prevDayBtn)
 
-        nextDayBtn.setOnClickListener { nextDay() }
-        prevDayBtn.setOnClickListener { prevDay() }
+        nextDayBtn.setOnClickListener { showPrayerTimes(1) }
+        prevDayBtn.setOnClickListener { showPrayerTimes(-1) }
 
-        initTimesLayout(-1)
+        showPrayerTimes(0)
     }
 
-    private fun nextDay() {
-        date.changeDay(1)
-        lifecycleScope.launch {
-            try {
-                val dayTimes = PTManager.getNextDayTimes(this@MainActivity)
-                if (dayTimes != null) {
-                    addDayTimes(dayTimes)
-                } else {
-                    showToast("Day times is null")
-                }
-            } catch (e: Exception) {
-                showToast("Failed to get next month")
-            }
-        }
-    }
-
-    private fun prevDay() {
-        date.changeDay(-1)
-        lifecycleScope.launch {
-            try {
-                val dayTimes = PTManager.getPrevDayTimes(this@MainActivity)
-                if (dayTimes != null) {
-                    addDayTimes(dayTimes)
-                } else {
-                    showToast("Day times is null")
-                }
-            } catch (e: Exception) {
-                showToast("Failed to get previous month")
-            }
-        }
-    }
-
-    private fun initTimesLayout(oldMonth: Int): Boolean {
-        if (!PTManager.hasLocalData(date.year, date.month, this@MainActivity)) {
-            if (!hasInternetConnection("Unable to connect to internet")) {
-                return false
-            }
-        }
-
+    /**
+     * Displays the day's prayer times to the user.
+     * Uses [from] to determine if it should get the previous, current, or
+     * next day's times.
+     * @param [from] indicates where the call is coming from (-1, 0, 1).
+     */
+    private fun showPrayerTimes(from: Int) {
         val prevDayBtn = findViewById<ImageButton>(R.id.prevDayBtn)
         val nextDayBtn = findViewById<ImageButton>(R.id.nextDayBtn)
 
@@ -178,8 +142,15 @@ class MainActivity : ComponentActivity() {
         nextDayBtn.isEnabled = false
 
         lifecycleScope.launch {
-            try {
-                val dayTimes: MutableList<String>? = PTManager.getTodayTimes(this@MainActivity)
+            try { //TODO: Catch network error (No internet)
+                val dayTimes: MutableList<String>? = if (from < 0) {
+                    ptManager.getPrevDayTimes(this@MainActivity)
+                } else if (from > 0) {
+                    ptManager.getNextDayTimes(this@MainActivity)
+                } else {
+                    ptManager.getTodayTimes(this@MainActivity)
+                }
+
                 if (dayTimes != null) {
                     addDayTimes(dayTimes)
                 } else {
@@ -192,8 +163,9 @@ class MainActivity : ComponentActivity() {
                 showToast("Failed to get prayer times")
                 Log.e("ERROR", "Failed to fetch prayer times: $e")
             }
+
         }
-        return true
+
     }
 
     /**
@@ -214,7 +186,7 @@ class MainActivity : ComponentActivity() {
         }
 
         for (i in 0..< dayTimes.size) {
-            val prayerTitle = PTManager.prayerTitles[i]
+            val prayerTitle = ptManager.prayerTitles[i]
 
             if (prayerTitle != ignoreAsrType) {
                 layout.addView(createButtonItem(
