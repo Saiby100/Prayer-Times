@@ -46,17 +46,17 @@
             </LinearLayout>
         </ScrollView>
 
-        <Button
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textColor="@color/white"
-            android:background="@drawable/btn_ripple"
-            android:text="@string/today"
-            android:fontFamily="@font/inter_medium"
-            android:textSize="16sp"
-            android:layout_gravity="center"
-            android:elevation="0dp"
-            android:textAllCaps="false"/>
+<!--        <Button-->
+<!--            android:layout_width="wrap_content"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:textColor="@color/white"-->
+<!--            android:background="@drawable/btn_ripple"-->
+<!--            android:text="@string/today"-->
+<!--            android:fontFamily="@font/inter_medium"-->
+<!--            android:textSize="16sp"-->
+<!--            android:layout_gravity="center"-->
+<!--            android:elevation="0dp"-->
+<!--            android:textAllCaps="false"/>-->
     </LinearLayout>
 
     <LinearLayout
