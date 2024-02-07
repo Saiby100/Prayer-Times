@@ -43,7 +43,9 @@ object PTScraper {
     * Set the timesUrl for [area].
     */
    fun setArea(area: String) {
-      val areaString = area.replace("\\s".toRegex(), "").lowercase()
+      val areaString = area.replace("\\s".toRegex(), "")
+         .replace("'", "")
+         .lowercase()
       timesUrl = "$url/$areaString"
       areaSet = true
    }
