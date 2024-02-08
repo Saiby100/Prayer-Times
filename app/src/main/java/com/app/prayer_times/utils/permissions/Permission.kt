@@ -2,28 +2,34 @@ package com.app.prayer_times.utils.permissions
 
 import android.app.Activity
 import android.content.pm.PackageManager
+import android.os.Build
 import androidx.core.app.ActivityCompat
 
 object Permission {
-
-    fun getPermission(permission: String, activity: Activity): Boolean {
-        val hasPermission: Boolean = hasPermission(permission, activity)
-        if (hasPermission) {
-            return true
+    fun getNotificationPermission(activity: Activity) : Boolean {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (!hasPermission(android.Manifest.permission.POST_NOTIFICATIONS, activity)) {
+                ActivityCompat.requestPermissions(activity,
+                    arrayOf(android.Manifest.permission.POST_NOTIFICATIONS),
+                    1)
+                return false
+            }
         }
-
-        when (permission) {
-            android.Manifest.permission.POST_NOTIFICATIONS ->
-                getNotificationPermission(activity)
-        }
-
-        return false
+        return true
     }
 
-    private fun getNotificationPermission(activity: Activity) {
-        ActivityCompat.requestPermissions(activity,
-            arrayOf(android.Manifest.permission.POST_NOTIFICATIONS),
-            1)
+    fun getExactAlarmPermission(activity: Activity): Boolean {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            if (!hasPermission(android.Manifest.permission.SCHEDULE_EXACT_ALARM, activity)) {
+                ActivityCompat.requestPermissions(
+                    activity,
+                    arrayOf(android.Manifest.permission.SCHEDULE_EXACT_ALARM),
+                    2
+                )
+                return false
+            }
+        }
+        return true
     }
 
     private fun hasPermission(permission: String, activity: Activity): Boolean {
