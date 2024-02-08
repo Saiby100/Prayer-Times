@@ -1,4 +1,4 @@
-package com.app.prayer_times.utils
+package com.app.prayer_times.utils.datetime
 
 import android.util.Log
 import java.lang.NumberFormatException
