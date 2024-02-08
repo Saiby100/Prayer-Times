@@ -1,7 +1,5 @@
 package com.app.prayer_times.utils.datetime
 
-import android.util.Log
-import java.lang.NumberFormatException
 import java.util.Calendar
 
 class Date {
