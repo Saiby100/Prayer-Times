@@ -15,10 +15,11 @@ import androidx.activity.ComponentActivity
 import androidx.core.content.ContextCompat
 import androidx.core.content.res.ResourcesCompat
 import androidx.lifecycle.lifecycleScope
-import com.app.prayer_times.data.PTManager
+import com.app.prayer_times.data.core.PTManager
 import kotlinx.coroutines.launch
-import com.app.prayer_times.utils.Date
+import com.app.prayer_times.utils.datetime.Date
 import com.app.prayer_times.utils.notifications.Notification
+import com.app.prayer_times.utils.permissions.Permission
 
 class MainActivity : ComponentActivity() {
 
@@ -54,14 +55,14 @@ class MainActivity : ComponentActivity() {
         return isNew == null
     }
 
-    private fun initAreaLayout(): Boolean {
+    private fun initAreaLayout() {
         setContentView(R.layout.select_area_layout)
 
         val linearLayout = findViewById<LinearLayout>(R.id.areaLayout)
 
         if (!hasInternetConnection("Unable to connect to internet")) {
             //TODO: Implement retry button
-            return false
+            return
         }
 
         lifecycleScope.launch {
@@ -82,7 +83,6 @@ class MainActivity : ComponentActivity() {
                 Log.e("ERROR", "Failed to fetch areas: $e")
             }
         }
-        return true
     }
 
     private fun createButtonItem(text: String, highlighted: Boolean = false): Button {
@@ -119,7 +119,7 @@ class MainActivity : ComponentActivity() {
         initDayLayout(areaString)
 
         if (isNewUser()) {
-            notification.requestNotificationPermission()
+            Permission.getNotificationPermission(this@MainActivity)
         }
     }
 
@@ -180,9 +180,7 @@ class MainActivity : ComponentActivity() {
                 showToast("Failed to get prayer times")
                 Log.e("ERROR", "Failed to fetch prayer times: $e")
             }
-
         }
-
     }
 
     /**
@@ -249,9 +247,5 @@ class MainActivity : ComponentActivity() {
 
     private fun getSetting(key: String): String? {
         return sharedPreferences.getString(key, null)
-    }
-
-    private fun logMsg(message: String) {
-        Log.d("debugging", message)
     }
 }
