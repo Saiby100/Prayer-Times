@@ -1,4 +1,4 @@
-package com.app.prayer_times.data
+package com.app.prayer_times.data.core
 
 import android.content.Context
 import android.net.ConnectivityManager
@@ -7,7 +7,8 @@ import android.net.NetworkCapabilities
 import android.net.NetworkRequest
 import android.util.Log
 import kotlinx.coroutines.runBlocking
-import com.app.prayer_times.utils.Date
+import com.app.prayer_times.utils.datetime.Date
+import com.app.prayer_times.utils.debug.Logger
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -49,8 +50,8 @@ class PTManager (startDate: Date = Date()) {
 
     suspend fun getTodayTimes(context: Context): MutableList<String>? {
         return withContext(Dispatchers.IO) {
-            logMsg(date.toString())
-            logMsg("Fetching current times")
+            Logger.logMsg(date.toString())
+            Logger.logMsg("Fetching current times")
             timesList = getMonthTimes(context, date.month, date.year)!!
             fetchNextMonthTimes(context)
             fetchPrevMonthTimes(context)
@@ -65,7 +66,7 @@ class PTManager (startDate: Date = Date()) {
                 if (!hasInternetConnection(context)) {
                     date.changeDay(-1)
                 } else {
-                    logMsg("Moved into next month ${date.month}")
+                    Logger.logMsg("Moved into next month ${date.month}")
                     nextMonthJob.join()
                     prevMonthJob.cancel()
 
@@ -88,7 +89,7 @@ class PTManager (startDate: Date = Date()) {
                 if (!hasInternetConnection(context)) {
                     date.changeDay(1)
                 } else {
-                    logMsg("Moved into previous month ${date.month}")
+                    Logger.logMsg("Moved into previous month ${date.month}")
                     prevMonthJob.join()
                     nextMonthJob.cancel()
 
@@ -108,7 +109,7 @@ class PTManager (startDate: Date = Date()) {
         val list: MutableList<String>?
 
         if (hasLocalData(year, month, context)) {
-            logMsg("Local data found")
+            Logger.logMsg("Local data found")
             list = PTDataStore.getPrayerTimes(thisArea, year, month, context)
 
             if (prayerTitles.size == 0) {
@@ -118,7 +119,7 @@ class PTManager (startDate: Date = Date()) {
         }
 
         waitForInternet(context)
-        logMsg("Scraping new data")
+        Logger.logMsg("Scraping new data")
         list = PTScraper.getPrayerTimesMonth(year, month)
 
         if (prayerTitles.size == 0) {
@@ -140,7 +141,7 @@ class PTManager (startDate: Date = Date()) {
 
     private fun getDayTimes(): MutableList<String>? {
         if (timesList.size == 0) {
-            logMsg("Times list is empty")
+            Logger.logMsg("Times list is empty")
             return null
         }
 
@@ -171,7 +172,7 @@ class PTManager (startDate: Date = Date()) {
                 date.year
             }
             nextTimesList = getMonthTimes(context, month, year)!!
-            logMsg("Fetching next month ($month) times completed")
+            Logger.logMsg("Fetching next month ($month) times completed")
         }
     }
 
@@ -185,7 +186,7 @@ class PTManager (startDate: Date = Date()) {
                 date.year
             }
             prevTimesList = getMonthTimes(context, month, year)!!
-            logMsg("Fetching previous month ($month) times completed")
+            Logger.logMsg("Fetching previous month ($month) times completed")
         }
     }
 
@@ -222,10 +223,6 @@ class PTManager (startDate: Date = Date()) {
      */
     private fun hasLocalData(year: Int, month: Int, context: Context): Boolean {
         return PTDataStore.hasLocalData(thisArea, year, month, context)
-    }
-
-    private fun logMsg(message: String) {
-        Log.d("debugging", message)
     }
 }
 

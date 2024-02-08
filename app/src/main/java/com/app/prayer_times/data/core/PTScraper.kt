@@ -1,6 +1,5 @@
-package com.app.prayer_times.data
+package com.app.prayer_times.data.core
 
-import android.util.Log
 import kotlinx.coroutines.runBlocking
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document

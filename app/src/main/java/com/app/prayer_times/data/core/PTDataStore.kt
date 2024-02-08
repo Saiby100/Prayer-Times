@@ -1,4 +1,4 @@
-package com.app.prayer_times.data
+package com.app.prayer_times.data.core
 
 import android.content.Context
 import com.opencsv.CSVReader
