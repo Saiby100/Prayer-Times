@@ -14,7 +14,7 @@
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:paddingTop="20dp"
-        app:layout_constraintBottom_toTopOf="@+id/indicator"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
@@ -46,64 +46,63 @@
             </LinearLayout>
         </ScrollView>
 
-<!--        <Button-->
-<!--            android:layout_width="wrap_content"-->
-<!--            android:layout_height="wrap_content"-->
-<!--            android:textColor="@color/white"-->
-<!--            android:background="@drawable/btn_ripple"-->
-<!--            android:text="@string/today"-->
-<!--            android:fontFamily="@font/inter_medium"-->
-<!--            android:textSize="16sp"-->
-<!--            android:layout_gravity="center"-->
-<!--            android:elevation="0dp"-->
-<!--            android:textAllCaps="false"/>-->
-    </LinearLayout>
-
-    <LinearLayout
-        android:id="@+id/indicator"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/linearLayout">
-
-        <ImageButton
-            android:id="@+id/prevDayBtn"
-            android:layout_width="50dp"
-            android:layout_height="50dp"
-            android:layout_gravity="center_vertical"
-            android:background="@drawable/btn_ripple"
-            android:elevation="0dp"
-            android:fontFamily="@font/inter_semi_bold"
-            android:src="@drawable/left_arrow"
-            android:stateListAnimator="@null"
-            android:textColor="@color/text_color_dark" />
-
-        <TextView
-            android:id="@+id/dateTitle"
-            android:layout_width="0dp"
+        <Button
+            android:id="@+id/todayBtn"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:layout_weight="2"
-            android:fontFamily="@font/inter_semi_bold"
-            android:text="@string/date"
-            android:textAlignment="center"
             android:textColor="@color/white"
-            android:textSize="20sp" />
-
-
-        <ImageButton
-            android:id="@+id/nextDayBtn"
-            android:layout_width="50dp"
-            android:layout_height="50dp"
-            android:layout_gravity="center_vertical"
             android:background="@drawable/btn_ripple"
+            android:text="@string/today"
+            android:fontFamily="@font/inter_medium"
+            android:textSize="16sp"
+            android:layout_gravity="center"
             android:elevation="0dp"
-            android:fontFamily="@font/inter_semi_bold"
-            android:src="@drawable/right_arrow"
-            android:stateListAnimator="@null"
-            android:textColor="@color/text_color_dark" />
+            android:textAllCaps="false"/>
+
+        <LinearLayout
+            android:id="@+id/indicator"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginTop="50dp">
+
+            <ImageButton
+                android:id="@+id/prevDayBtn"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:layout_gravity="center_vertical"
+                android:background="@drawable/btn_ripple"
+                android:elevation="0dp"
+                android:fontFamily="@font/inter_semi_bold"
+                android:src="@drawable/left_arrow"
+                android:stateListAnimator="@null"
+                android:textColor="@color/text_color_dark" />
+
+            <TextView
+                android:id="@+id/dateTitle"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_weight="2"
+                android:fontFamily="@font/inter_semi_bold"
+                android:text="@string/date"
+                android:textAlignment="center"
+                android:textColor="@color/white"
+                android:textSize="20sp" />
+
+
+            <ImageButton
+                android:id="@+id/nextDayBtn"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:layout_gravity="center_vertical"
+                android:background="@drawable/btn_ripple"
+                android:elevation="0dp"
+                android:fontFamily="@font/inter_semi_bold"
+                android:src="@drawable/right_arrow"
+                android:stateListAnimator="@null"
+                android:textColor="@color/text_color_dark" />
+        </LinearLayout>
     </LinearLayout>
+
 </androidx.constraintlayout.widget.ConstraintLayout>

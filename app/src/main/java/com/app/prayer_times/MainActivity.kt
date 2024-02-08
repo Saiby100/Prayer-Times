@@ -18,26 +18,24 @@ import androidx.lifecycle.lifecycleScope
 import com.app.prayer_times.data.PTManager
 import kotlinx.coroutines.launch
 import com.app.prayer_times.utils.Date
+import com.app.prayer_times.utils.notifications.Notification
 
 class MainActivity : ComponentActivity() {
 
     private lateinit var sharedPreferences: SharedPreferences
     private val date = Date()
 
-    private var ignoreAsrType: String? = null
     private val ptManager: PTManager = PTManager(date)
+
+    private lateinit var notification: Notification
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        notification = Notification(this)
+
         sharedPreferences = getSharedPreferences("user_settings", Context.MODE_PRIVATE)
         val area: String? = getSetting("user_area")
-        ignoreAsrType = getSetting("asr_type")
-
-        if (ignoreAsrType == null) {
-            ignoreAsrType = "Asr(H)"
-            saveSetting("asr_type", ignoreAsrType!!)
-        }
 
         if (area == null) {
             initAreaLayout()
@@ -47,6 +45,14 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    private fun isNewUser(): Boolean {
+        val isNew = getSetting("new_user")
+        if (isNew == null) {
+            saveSetting("new_user", "false")
+        }
+
+        return isNew == null
+    }
 
     private fun initAreaLayout(): Boolean {
         setContentView(R.layout.select_area_layout)
@@ -111,6 +117,10 @@ class MainActivity : ComponentActivity() {
         ptManager.initArea(areaString)
         saveSetting("user_area", areaString)
         initDayLayout(areaString)
+
+        if (isNewUser()) {
+            notification.requestNotificationPermission()
+        }
     }
 
     private fun initDayLayout(areaString: String) {
@@ -121,11 +131,16 @@ class MainActivity : ComponentActivity() {
         //Bind actions to next/prev buttons
         val nextDayBtn: ImageButton = findViewById(R.id.nextDayBtn)
         val prevDayBtn: ImageButton = findViewById(R.id.prevDayBtn)
+        val todayBtn = findViewById<Button>(R.id.todayBtn)
 
         hasInternetConnection("Check internet connection")
 
         nextDayBtn.setOnClickListener { showPrayerTimes(1) }
         prevDayBtn.setOnClickListener { showPrayerTimes(-1) }
+        todayBtn.setOnClickListener {
+            notification.showReminderNotification("Prayer is approaching",
+                "This is a test")
+        }
 
         showPrayerTimes(0)
     }
