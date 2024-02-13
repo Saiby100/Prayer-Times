@@ -18,7 +18,10 @@ import androidx.lifecycle.lifecycleScope
 import com.app.prayer_times.data.core.PTManager
 import kotlinx.coroutines.launch
 import com.app.prayer_times.utils.datetime.Date
+import com.app.prayer_times.utils.datetime.Time
+import com.app.prayer_times.utils.debug.Logger
 import com.app.prayer_times.utils.notifications.Notification
+import com.app.prayer_times.utils.notifications.NotificationScheduler
 import com.app.prayer_times.utils.permissions.Permission
 
 class MainActivity : ComponentActivity() {
@@ -29,11 +32,13 @@ class MainActivity : ComponentActivity() {
     private val ptManager: PTManager = PTManager(date)
 
     private lateinit var notification: Notification
+    private lateinit var scheduler: NotificationScheduler
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         notification = Notification(this)
+        scheduler = NotificationScheduler(this)
 
         sharedPreferences = getSharedPreferences("user_settings", Context.MODE_PRIVATE)
         val area: String? = getSetting("user_area")
@@ -138,8 +143,7 @@ class MainActivity : ComponentActivity() {
         nextDayBtn.setOnClickListener { showPrayerTimes(1) }
         prevDayBtn.setOnClickListener { showPrayerTimes(-1) }
         todayBtn.setOnClickListener {
-            notification.showReminderNotification("Prayer is approaching",
-                "This is a test")
+            showToast("Today Button Pressed")
         }
 
         showPrayerTimes(0)
@@ -202,11 +206,34 @@ class MainActivity : ComponentActivity() {
 
         for (i in 0..< dayTimes.size) {
             val prayerTitle = ptManager.prayerTitles[i]
-
-            layout.addView(createButtonItem(
+            val btn = createButtonItem(
                 "${prayerTitle}: ${dayTimes[i]}",
                 targetIndex == i
-            ))
+            )
+            btn.setOnClickListener {
+                if (Permission.getNotificationPermission(this@MainActivity)) {
+                    val currentTime = date.currentTime()
+
+                    val remindBefore: Int = 5 //TODO: Fetch from preferences
+                    val time = Time(dayTimes[i])
+                    time.setEarlier(minutes = remindBefore) //5 minutes before
+
+                    if (currentTime.timeCmp(time) < 0) {
+                        val reminderScheduled = scheduler.toggleReminder(
+                            time.toMillis(),
+                            prayerTitle,
+                            remindBefore
+                        )
+                        if (reminderScheduled)
+                            showToast("Reminder set successfully")
+                        else
+                            showToast("Failed to schedule reminder")
+                        //TODO: update notification indicator here
+                    }
+                }
+            }
+
+            layout.addView(btn)
         }
     }
 
