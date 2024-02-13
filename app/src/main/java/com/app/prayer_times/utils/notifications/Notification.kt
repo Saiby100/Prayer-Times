@@ -1,12 +1,10 @@
 package com.app.prayer_times.utils.notifications
 
-import android.app.Activity
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
 import androidx.core.app.NotificationCompat
 import com.app.prayer_times.R
-import com.app.prayer_times.utils.permissions.Permission
 
 class Notification (private val context: Context) {
     private data class Channel (
@@ -42,19 +40,18 @@ class Notification (private val context: Context) {
         }
     }
 
-    fun showReminderNotification(title: String, text: String) {
-        val hasNotificationPermission: Boolean = Permission
-            .getNotificationPermission(context as Activity)
-        val reminderId = 0
+    fun showReminderNotification(prayer: String, timeUntil: Int) {
         val builder = NotificationCompat.Builder(context, "REMINDER")
             .setSmallIcon(R.drawable.app_icon)
-            .setContentTitle(title)
-            .setContentText(text)
+            .setContentTitle("Reminder")
+            .setContentText(genReminderNotification(prayer, timeUntil))
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             .setAutoCancel(true)
 
-        if (hasNotificationPermission) {
-            notificationManager.notify(reminderId, builder.build())
-        }
+        notificationManager.notify(prayer.hashCode(), builder.build())
+    }
+
+    private fun genReminderNotification(prayer: String, timeUntil: Int): String {
+        return "$prayer in $timeUntil minutes"
     }
 }
