@@ -7,8 +7,15 @@ import com.app.prayer_times.utils.notifications.Notification
 
 class AlarmReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
-        val notification: Notification = Notification(context)
+        //Show the notification
+        val notification = Notification(context)
 
-        notification.showReminderNotification("", "")
+        var prayer = intent.getStringExtra("prayer")
+        if (prayer == null) {
+            prayer = "Unknown"
+        }
+        val timeUntil: Int = intent.getIntExtra("timeUntil", -1)
+
+        notification.showReminderNotification(prayer, timeUntil)
     }
 }
