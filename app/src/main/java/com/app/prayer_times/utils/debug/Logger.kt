@@ -3,7 +3,7 @@ package com.app.prayer_times.utils.debug
 import android.util.Log
 
 object Logger {
-    val tags = arrayOf("MESSAGE", "DEBUG", "ERROR")
+    val tags = arrayOf("MESSAGE", "DEBUGGING", "ERROR")
 
     fun logMsg(text: String) {
         Log.d(tags[0], text)
