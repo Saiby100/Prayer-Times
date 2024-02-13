@@ -18,8 +18,11 @@ class NotificationScheduler(private val context: Context) {
                 cancelReminder(prayer)
                 alarmScheduled[prayer.hashCode()] = false
             } else {
-                return scheduleReminder(timeInMillis, prayer, timeUntil)
-                alarmScheduled[prayer.hashCode()] = true
+                if (scheduleReminder(timeInMillis, prayer, timeUntil)) {
+                    alarmScheduled[prayer.hashCode()] = true
+                } else {
+                    return false
+                }
             }
         } catch (e: Exception) {
             return false
