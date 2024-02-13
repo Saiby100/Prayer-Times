@@ -1,5 +1,7 @@
 package com.app.prayer_times.utils.datetime
 
+import com.app.prayer_times.utils.debug.Logger
+import java.time.LocalTime
 import java.util.Calendar
 
 class Date {
@@ -75,6 +77,7 @@ class Date {
      * @return The index of the first time following the current time.
      */
     fun timeCmp(times: List<String>): Int {
+        //TODO: Use Time class
         val hour: Int = calendar.get(Calendar.HOUR_OF_DAY)
         val minute: Int = calendar.get(Calendar.MINUTE)
 
@@ -97,6 +100,10 @@ class Date {
         return -1
     }
 
+    fun currentTime(): Time {
+        return Time(LocalTime.now())
+    }
+
     /**
      * Checks if the input date matches the current date.
      */
@@ -110,16 +117,14 @@ class Date {
 }
 
 fun main() {
+
+    val hour = Calendar.HOUR_OF_DAY
+    val minute = Calendar.MINUTE
+
+    println("$hour:$minute")
+
     val date = Date()
-    println("Current date: year: ${date.year}, month: ${date.month}, day: ${date.day}")
-    println(date.getNextMonth(11))
-    println(date.getNextMonth(12))
-    println(date.getPrevMonth(3))
-    println(date.getPrevMonth(1))
-    println("Current date: year: ${date.year}, month: ${date.month}, day: ${date.day}")
-//    date.changeDay(-1)
-//
-//    println(date.day)
-//    println(date.month)
-//    println(date.year)
+    val time = Time("${hour}:${minute}")
+
+    println(time.toMillis())
 }
