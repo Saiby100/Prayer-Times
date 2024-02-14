@@ -26,8 +26,7 @@ class MainActivity : ComponentActivity() {
 
     private val date = Date()
 
-    private val ptManager: PTManager = PTManager(date)
-
+    private lateinit var ptManager: PTManager
     private lateinit var notification: Notification
     private lateinit var scheduler: NotificationScheduler
     private lateinit var userPrefs: UserPrefs
@@ -35,6 +34,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        ptManager = PTManager(this, date)
         notification = Notification(this)
         scheduler = NotificationScheduler(this)
         userPrefs = UserPrefs(this)
@@ -150,11 +150,11 @@ class MainActivity : ComponentActivity() {
         lifecycleScope.launch {
             try {
                 val dayTimes: MutableList<Time>? = if (from < 0) {
-                    ptManager.getPrevDayTimes(this@MainActivity)
+                    ptManager.getPrevDayTimes()
                 } else if (from > 0) {
-                    ptManager.getNextDayTimes(this@MainActivity)
+                    ptManager.getNextDayTimes()
                 } else {
-                    ptManager.getTodayTimes(this@MainActivity)
+                    ptManager.getTodayTimes()
                 }
 
                 if (dayTimes != null) {
