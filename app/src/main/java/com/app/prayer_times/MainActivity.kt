@@ -1,7 +1,6 @@
 package com.app.prayer_times
 
 import android.content.Context
-import android.content.SharedPreferences
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.os.Bundle
@@ -20,14 +19,11 @@ import com.app.prayer_times.data.preferences.UserPrefs
 import kotlinx.coroutines.launch
 import com.app.prayer_times.utils.datetime.Date
 import com.app.prayer_times.utils.datetime.Time
-import com.app.prayer_times.utils.debug.Logger
 import com.app.prayer_times.utils.notifications.Notification
-import com.app.prayer_times.utils.notifications.NotificationScheduler
-import com.app.prayer_times.utils.permissions.Permission
+import com.app.prayer_times.utils.schedulers.NotificationScheduler
 
 class MainActivity : ComponentActivity() {
 
-    private lateinit var sharedPreferences: SharedPreferences
     private val date = Date()
 
     private val ptManager: PTManager = PTManager(date)
