@@ -1,11 +1,11 @@
-package com.app.prayer_times.utils.alarms
+package com.app.prayer_times.utils.receivers
 
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import com.app.prayer_times.utils.notifications.Notification
 
-class AlarmReceiver : BroadcastReceiver() {
+class NotificationReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         //Show the notification
         val notification = Notification(context)

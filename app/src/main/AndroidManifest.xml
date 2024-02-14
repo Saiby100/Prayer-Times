@@ -30,7 +30,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <receiver android:name=".utils.alarms.AlarmReceiver" />
+        <receiver android:name=".utils.receivers.NotificationReceiver" />
     </application>
 
 </manifest>

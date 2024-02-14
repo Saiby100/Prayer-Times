@@ -1,25 +1,27 @@
-package com.app.prayer_times.utils.notifications
+package com.app.prayer_times.utils.schedulers
 
 import android.app.AlarmManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.os.Build
-import com.app.prayer_times.utils.alarms.AlarmReceiver
+import com.app.prayer_times.data.preferences.UserPrefs
+import com.app.prayer_times.utils.receivers.NotificationReceiver
+import com.app.prayer_times.utils.datetime.Time
 import com.app.prayer_times.utils.debug.Logger
 
 class NotificationScheduler(private val context: Context) {
     private val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
-    private val alarmScheduled = mutableMapOf<Int, Boolean>()
+    private val userPrefs: UserPrefs = UserPrefs(context)
 
-    fun toggleReminder(timeInMillis: Long, prayer: String, timeUntil: Int): Boolean {
+    fun toggleReminder(timeInMillis: Long, prayer: String): Boolean {
         try {
-            if (alarmScheduled[prayer.hashCode()] == true) {
+            if (userPrefs.getBool(prayer, false)) {
                 cancelReminder(prayer)
-                alarmScheduled[prayer.hashCode()] = false
+                userPrefs.setBool(prayer, false)
             } else {
-                if (scheduleReminder(timeInMillis, prayer, timeUntil)) {
-                    alarmScheduled[prayer.hashCode()] = true
+                if (scheduleReminder(timeInMillis, prayer)) {
+                    userPrefs.setBool(prayer, true)
                 } else {
                     return false
                 }
@@ -30,14 +32,11 @@ class NotificationScheduler(private val context: Context) {
 
         return true
     }
-    fun scheduleReminder(timeInMillis: Long, prayer: String, timeUntil: Int): Boolean {
+    private fun scheduleReminder(timeInMillis: Long, prayer: String): Boolean {
         try {
-            if (alarmScheduled[prayer.hashCode()] == true) {
-                return true
-            }
-            val alarmIntent = Intent(context, AlarmReceiver::class.java).apply {
+            val alarmIntent = Intent(context, NotificationReceiver::class.java).apply {
                 putExtra("prayer", prayer)
-                putExtra("timeUntil", timeUntil)
+                putExtra("timeUntil", userPrefs.getInt("timeUntil", 5))
             }
 
             val pendingIntent = PendingIntent.getBroadcast(
@@ -57,9 +56,29 @@ class NotificationScheduler(private val context: Context) {
         return false
     }
 
+    fun scheduleAllReminders(prayerTitles: List<String>, dayTimes: List<Time>): Boolean {
+        if (prayerTitles.size != dayTimes.size) {
+            return false
+        }
+
+        try {
+            val alarmPrefs: List<Boolean> = userPrefs.getBoolList(prayerTitles, false)
+            for (i in prayerTitles.indices) {
+                if (alarmPrefs[i]) {
+                    scheduleReminder(dayTimes[i].toMillis(), prayerTitles[i])
+                }
+            }
+        } catch (e: Exception) {
+            Logger.logErr("Error in scheduleAllReminders: $e")
+            return false
+        }
+
+        return true
+    }
+
     private fun cancelReminder(prayer: String) {
         try {
-            val alarmIntent = Intent(context, AlarmReceiver::class.java)
+            val alarmIntent = Intent(context, NotificationReceiver::class.java)
 
             alarmManager.cancel(PendingIntent.getBroadcast(
                 context,
