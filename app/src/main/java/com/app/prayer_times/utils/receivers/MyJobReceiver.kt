@@ -4,11 +4,11 @@ import android.app.job.JobParameters
 import android.app.job.JobService
 
 class MyJobService: JobService() {
-    override fun onStartJob(params: JobParameters?): Boolean {
+    override fun onStartJob(params: JobParameters): Boolean {
         TODO("Not yet implemented")
     }
 
-    override fun onStopJob(params: JobParameters?): Boolean {
+    override fun onStopJob(params: JobParameters): Boolean {
         TODO("Not yet implemented")
     }
 }

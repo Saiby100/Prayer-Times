@@ -18,7 +18,7 @@ import kotlinx.coroutines.launch
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
-class PTManager (startDate: Date = Date()) {
+class PTManager (private val context: Context, startDate: Date = Date()) {
     private lateinit var thisArea: String
     private val date: Date
 
@@ -48,22 +48,29 @@ class PTManager (startDate: Date = Date()) {
         return withContext(Dispatchers.IO) { PTScraper.getAreaTitles() }
     }
 
-    suspend fun getTodayTimes(context: Context): MutableList<Time>? {
+    suspend fun getTodayTimesJob(): MutableList<Time>? {
         return withContext(Dispatchers.IO) {
-            Logger.logMsg(date.toString())
-            Logger.logMsg("Fetching current times")
-            timesList = getMonthTimes(context, date.month, date.year)!!
-            fetchNextMonthTimes(context)
-            fetchPrevMonthTimes(context)
+            timesList = getMonthTimes(date.month, date.year)!!
             getDayTimes()
         }
     }
 
-    suspend fun getNextDayTimes(context: Context): MutableList<Time>? {
+    suspend fun getTodayTimes(): MutableList<Time>? {
+        return withContext(Dispatchers.IO) {
+            Logger.logMsg(date.toString())
+            Logger.logMsg("Fetching current times")
+            timesList = getMonthTimes(date.month, date.year)!!
+            fetchNextMonthTimes()
+            fetchPrevMonthTimes()
+            getDayTimes()
+        }
+    }
+
+    suspend fun getNextDayTimes(): MutableList<Time>? {
         return withContext(Dispatchers.IO) {
             date.changeDay(1)
             if (date.day == 1) {
-                if (!hasInternetConnection(context)) {
+                if (!hasInternetConnection()) {
                     date.changeDay(-1)
                 } else {
                     Logger.logMsg("Moved into next month ${date.month}")
@@ -74,19 +81,19 @@ class PTManager (startDate: Date = Date()) {
                     prevTimesList = timesList
                     //make current month next month
                     timesList = nextTimesList
-                    fetchNextMonthTimes(context, 3)
+                    fetchNextMonthTimes(3)
                 }
             }
             getDayTimes()
         }
     }
 
-    suspend fun getPrevDayTimes(context: Context): MutableList<Time>? {
+    suspend fun getPrevDayTimes(): MutableList<Time>? {
         return withContext(Dispatchers.IO) {
             val oldDay = date.day
             date.changeDay(-1)
             if (date.day > oldDay) {
-                if (!hasInternetConnection(context)) {
+                if (!hasInternetConnection()) {
                     date.changeDay(1)
                 } else {
                     Logger.logMsg("Moved into previous month ${date.month}")
@@ -97,7 +104,7 @@ class PTManager (startDate: Date = Date()) {
                     nextTimesList = timesList
                     //make current month previous month
                     timesList = prevTimesList
-                    fetchPrevMonthTimes(context, 3)
+                    fetchPrevMonthTimes(3)
                 }
             }
 
@@ -105,10 +112,10 @@ class PTManager (startDate: Date = Date()) {
         }
     }
 
-    private suspend fun getMonthTimes(context: Context, month: Int, year: Int): MutableList<String>? {
+    private suspend fun getMonthTimes(month: Int, year: Int): MutableList<String>? {
         val list: MutableList<String>?
 
-        if (hasLocalData(year, month, context)) {
+        if (hasLocalData(year, month)) {
             Logger.logMsg("Local data found")
             list = PTDataStore.getPrayerTimes(thisArea, year, month, context)
 
@@ -118,7 +125,7 @@ class PTManager (startDate: Date = Date()) {
             return list
         }
 
-        waitForInternet(context)
+        waitForInternet()
         Logger.logMsg("Scraping new data")
         list = PTScraper.getPrayerTimesMonth(year, month)
 
@@ -162,7 +169,7 @@ class PTManager (startDate: Date = Date()) {
         return result
     }
 
-    private suspend fun fetchNextMonthTimes(context: Context, delaySeconds: Long = 0) {
+    private suspend fun fetchNextMonthTimes(delaySeconds: Long = 0) {
         nextMonthJob = CoroutineScope(Dispatchers.IO).launch {
             delay(delaySeconds*1000)
             val month = date.getNextMonth(date.month)
@@ -171,12 +178,12 @@ class PTManager (startDate: Date = Date()) {
             } else {
                 date.year
             }
-            nextTimesList = getMonthTimes(context, month, year)!!
+            nextTimesList = getMonthTimes(month, year)!!
             Logger.logMsg("Fetching next month ($month) times completed")
         }
     }
 
-    private suspend fun fetchPrevMonthTimes(context: Context, delaySeconds: Long = 0) {
+    private suspend fun fetchPrevMonthTimes(delaySeconds: Long = 0) {
         prevMonthJob = CoroutineScope(Dispatchers.IO).launch {
             delay(delaySeconds*1000)
             val month = date.getPrevMonth(date.month)
@@ -185,12 +192,12 @@ class PTManager (startDate: Date = Date()) {
             } else {
                 date.year
             }
-            prevTimesList = getMonthTimes(context, month, year)!!
+            prevTimesList = getMonthTimes(month, year)!!
             Logger.logMsg("Fetching previous month ($month) times completed")
         }
     }
 
-    private suspend fun waitForInternet(context: Context): Unit = suspendCoroutine { continuation ->
+    private suspend fun waitForInternet(): Unit = suspendCoroutine { continuation ->
         val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as
                 ConnectivityManager
         val networkCallback = object : ConnectivityManager.NetworkCallback() {
@@ -206,7 +213,7 @@ class PTManager (startDate: Date = Date()) {
         connectivityManager.registerNetworkCallback(networkRequest, networkCallback)
     }
 
-    private fun hasInternetConnection(context: Context): Boolean {
+    private fun hasInternetConnection(): Boolean {
         val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as
                 ConnectivityManager
 
@@ -221,7 +228,7 @@ class PTManager (startDate: Date = Date()) {
      * and [month]. The [context] is needed to check local storage.
      * @return true if data exists in local storage, false otherwise.
      */
-    private fun hasLocalData(year: Int, month: Int, context: Context): Boolean {
+    private fun hasLocalData(year: Int, month: Int): Boolean {
         return PTDataStore.hasLocalData(thisArea, year, month, context)
     }
 }
