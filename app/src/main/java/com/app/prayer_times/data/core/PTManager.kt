@@ -5,9 +5,9 @@ import android.net.ConnectivityManager
 import android.net.Network
 import android.net.NetworkCapabilities
 import android.net.NetworkRequest
-import android.util.Log
 import kotlinx.coroutines.runBlocking
 import com.app.prayer_times.utils.datetime.Date
+import com.app.prayer_times.utils.datetime.Time
 import com.app.prayer_times.utils.debug.Logger
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -48,7 +48,7 @@ class PTManager (startDate: Date = Date()) {
         return withContext(Dispatchers.IO) { PTScraper.getAreaTitles() }
     }
 
-    suspend fun getTodayTimes(context: Context): MutableList<String>? {
+    suspend fun getTodayTimes(context: Context): MutableList<Time>? {
         return withContext(Dispatchers.IO) {
             Logger.logMsg(date.toString())
             Logger.logMsg("Fetching current times")
@@ -59,7 +59,7 @@ class PTManager (startDate: Date = Date()) {
         }
     }
 
-    suspend fun getNextDayTimes(context: Context): MutableList<String>? {
+    suspend fun getNextDayTimes(context: Context): MutableList<Time>? {
         return withContext(Dispatchers.IO) {
             date.changeDay(1)
             if (date.day == 1) {
@@ -81,7 +81,7 @@ class PTManager (startDate: Date = Date()) {
         }
     }
 
-    suspend fun getPrevDayTimes(context: Context): MutableList<String>? {
+    suspend fun getPrevDayTimes(context: Context): MutableList<Time>? {
         return withContext(Dispatchers.IO) {
             val oldDay = date.day
             date.changeDay(-1)
@@ -139,14 +139,14 @@ class PTManager (startDate: Date = Date()) {
         return list
     }
 
-    private fun getDayTimes(): MutableList<String>? {
+    private fun getDayTimes(): MutableList<Time>? {
         if (timesList.size == 0) {
             Logger.logMsg("Times list is empty")
             return null
         }
 
         val size = prayerTitles.size
-        val result: MutableList<String> = mutableListOf()
+        val result: MutableList<Time> = mutableListOf()
 
         // Get all times for the day and return it
         val startIndex = (date.day - 1) + (size - 1) * (date.day - 1)
@@ -157,7 +157,7 @@ class PTManager (startDate: Date = Date()) {
         }
 
         for (i in startIndex .. endIndex) {
-            result.add(timesList[i])
+            result.add(Time(timesList[i]))
         }
         return result
     }
