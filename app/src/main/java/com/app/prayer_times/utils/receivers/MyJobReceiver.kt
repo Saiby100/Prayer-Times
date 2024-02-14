@@ -1,14 +1,27 @@
 package com.app.prayer_times.utils.receivers
 
-import android.app.job.JobParameters
-import android.app.job.JobService
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.content.Intent
+import com.app.prayer_times.data.core.PTManager
+import com.app.prayer_times.utils.schedulers.NotificationScheduler
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
-class MyJobService: JobService() {
-    override fun onStartJob(params: JobParameters): Boolean {
-        TODO("Not yet implemented")
-    }
+class MyJobReceiver: BroadcastReceiver() {
+    override fun onReceive(context: Context, intent: Intent) {
+        val scheduler = NotificationScheduler(context)
 
-    override fun onStopJob(params: JobParameters): Boolean {
-        TODO("Not yet implemented")
+        val ptManager = PTManager(context)
+        val prayerTitles = ptManager.prayerTitles
+
+        CoroutineScope(Dispatchers.IO).launch {
+            val dayTimes = ptManager.getTodayTimesJob()
+            if (dayTimes != null) {
+                scheduler.scheduleAllReminders(prayerTitles, dayTimes)
+            }
+        }
+
     }
 }
