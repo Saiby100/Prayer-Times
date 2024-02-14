@@ -188,8 +188,7 @@ class MainActivity : ComponentActivity() {
         layout.removeAllViews()
 
         val targetIndex: Int =  if (date.isToday()) {
-//            date.timeCmp(dayTimes)
-            -1
+            date.timeCmp(dayTimes)
         } else {
             -1
         }

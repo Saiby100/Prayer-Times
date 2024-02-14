@@ -76,23 +76,11 @@ class Date {
      * Gets the index of the first time in [times] that occurs after the current time.
      * @return The index of the first time following the current time.
      */
-    fun timeCmp(times: List<String>): Int {
-        //TODO: Use Time class
-        val hour: Int = calendar.get(Calendar.HOUR_OF_DAY)
-        val minute: Int = calendar.get(Calendar.MINUTE)
+    fun timeCmp(times: List<Time>): Int {
+        val currentTime = currentTime()
 
         for (i in times.indices) {
-            val timeSplit: List<String> = times[i].split(":")
-
-            if (timeSplit.size != 2)
-                return -1
-
-            val hourInput: Int = timeSplit[0].toInt()
-            val minInput: Int = timeSplit[1].toInt()
-
-            if (hour < hourInput) {
-                return i
-            } else if (hour == hourInput && minute < minInput) {
+            if (times[i].timeCmp(currentTime) >= 0) {
                 return i
             }
         }
