@@ -16,6 +16,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.content.res.ResourcesCompat
 import androidx.lifecycle.lifecycleScope
 import com.app.prayer_times.data.core.PTManager
+import com.app.prayer_times.data.preferences.UserPrefs
 import kotlinx.coroutines.launch
 import com.app.prayer_times.utils.datetime.Date
 import com.app.prayer_times.utils.datetime.Time
@@ -33,15 +34,16 @@ class MainActivity : ComponentActivity() {
 
     private lateinit var notification: Notification
     private lateinit var scheduler: NotificationScheduler
+    private lateinit var userPrefs: UserPrefs
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         notification = Notification(this)
         scheduler = NotificationScheduler(this)
+        userPrefs = UserPrefs(this)
 
-        sharedPreferences = getSharedPreferences("user_settings", Context.MODE_PRIVATE)
-        val area: String? = getSetting("user_area")
+        val area: String? = userPrefs.getString("user_area", null)
 
         if (area == null) {
             initAreaLayout()
@@ -49,15 +51,6 @@ class MainActivity : ComponentActivity() {
             ptManager.initArea(area)
             initDayLayout(area)
         }
-    }
-
-    private fun isNewUser(): Boolean {
-        val isNew = getSetting("new_user")
-        if (isNew == null) {
-            saveSetting("new_user", "false")
-        }
-
-        return isNew == null
     }
 
     private fun initAreaLayout() {
@@ -120,12 +113,8 @@ class MainActivity : ComponentActivity() {
 
     private fun handleAreaSelected(areaString: String) {
         ptManager.initArea(areaString)
-        saveSetting("user_area", areaString)
+        userPrefs.setString("user_area", areaString)
         initDayLayout(areaString)
-
-        if (isNewUser()) {
-            Permission.getNotificationPermission(this@MainActivity)
-        }
     }
 
     private fun initDayLayout(areaString: String) {
@@ -164,7 +153,7 @@ class MainActivity : ComponentActivity() {
 
         lifecycleScope.launch {
             try {
-                val dayTimes: MutableList<String>? = if (from < 0) {
+                val dayTimes: MutableList<Time>? = if (from < 0) {
                     ptManager.getPrevDayTimes(this@MainActivity)
                 } else if (from > 0) {
                     ptManager.getNextDayTimes(this@MainActivity)
@@ -190,7 +179,7 @@ class MainActivity : ComponentActivity() {
     /**
      * Adds the list of day times [dayTimes] to the layout to display to the user.
      */
-    private fun addDayTimes(dayTimes: MutableList<String>) {
+    private fun addDayTimes(dayTimes: MutableList<Time>) {
         val layout = findViewById<LinearLayout>(R.id.timesLayout)
         val dateTitle = findViewById<TextView>(R.id.dateTitle)
 
@@ -199,41 +188,66 @@ class MainActivity : ComponentActivity() {
         layout.removeAllViews()
 
         val targetIndex: Int =  if (date.isToday()) {
-            date.timeCmp(dayTimes)
+//            date.timeCmp(dayTimes)
+            -1
         } else {
             -1
         }
 
         for (i in 0..< dayTimes.size) {
+            //TODO: Highlight button with notification enabled
             val prayerTitle = ptManager.prayerTitles[i]
             val btn = createButtonItem(
                 "${prayerTitle}: ${dayTimes[i]}",
                 targetIndex == i
             )
-            btn.setOnClickListener {
-                if (Permission.getNotificationPermission(this@MainActivity)) {
-                    val currentTime = date.currentTime()
-
-                    val remindBefore: Int = 5 //TODO: Fetch from preferences
-                    val time = Time(dayTimes[i])
-                    time.setEarlier(minutes = remindBefore) //5 minutes before
-
-                    if (currentTime.timeCmp(time) < 0) {
-                        val reminderScheduled = scheduler.toggleReminder(
-                            time.toMillis(),
-                            prayerTitle,
-                            remindBefore
-                        )
-                        if (reminderScheduled)
-                            showToast("Reminder set successfully")
-                        else
-                            showToast("Failed to schedule reminder")
-                        //TODO: update notification indicator here
-                    }
-                }
-            }
+//            btn.setOnClickListener {
+//                if (Permission.getNotificationPermission(this@MainActivity)) {
+//                    val currentTime = date.currentTime()
+//
+//                    val remindBefore: Int = userPrefs.getInt("remindBefore", 5)
+//                    val time = Time(dayTimes[i])
+//                    time.setEarlier(minutes = remindBefore)
+//
+//                    if (!userPrefs.getBool("alarms_enabled", false)) {
+//                        //TODO: Schedule a reminder operation here
+//                        //This should go off once a day at the end of each day.
+//                        userPrefs.setBool("alarms_enabled", true)
+//                    }
+//
+//                    //Save user alarm preferences
+//                    if (scheduler.reminderActive(prayerTitle)) {
+//                        userPrefs.setBool(prayerTitle, false)
+//                    } else {
+//                        userPrefs.setBool(prayerTitle, true)
+//                    }
+//
+//                    if (currentTime.timeCmp(time) < 0) {
+//                        val reminderScheduled = scheduler.toggleReminder(
+//                            time.toMillis(),
+//                            prayerTitle,
+//                            remindBefore
+//                        )
+//                        if (reminderScheduled)
+//                            showToast("Reminder set successfully")
+//                        else
+//                            showToast("Failed to schedule reminder")
+//                        //TODO: update notification indicator here
+//                    }
+//                }
+//            }
 
             layout.addView(btn)
+        }
+    }
+
+    //TODO: Finish this
+    private fun setReminders() {
+        val prayerTitles = ptManager.prayerTitles
+
+        for (prayer in prayerTitles) {
+            if (userPrefs.getBool(prayer, false)) {
+            }
         }
     }
 
@@ -264,15 +278,5 @@ class MainActivity : ComponentActivity() {
         }
 
         return hasInternet
-    }
-
-    private fun saveSetting(key: String, value: String) {
-        val editor = sharedPreferences.edit()
-        editor.putString(key, value)
-        editor.apply()
-    }
-
-    private fun getSetting(key: String): String? {
-        return sharedPreferences.getString(key, null)
     }
 }
