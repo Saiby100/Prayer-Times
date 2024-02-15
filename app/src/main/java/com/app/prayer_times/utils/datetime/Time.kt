@@ -70,6 +70,10 @@ class Time(private var hour: Int, private var minute: Int) {
             timeInMillis = System.currentTimeMillis()
             set(Calendar.HOUR_OF_DAY, hour)
             set(Calendar.MINUTE, minute)
+
+            if (hour == 0) {
+                add(Calendar.DAY_OF_YEAR, 1)
+            }
         }
 
         return calendar.timeInMillis
@@ -89,17 +93,8 @@ class Time(private var hour: Int, private var minute: Int) {
 }
 
 fun main() {
-    val time = Time("23:00")
-    val time2 = Time("00:00")
-
-    time.setLater(minutes = 1)
-    time2.setEarlier(hours = 1)
-
-    println(time)
-    println(time2)
-
-    println(time.toMillis())
-    println(time2.toMillis())
-
-    println(time.timeCmp(time2))
+    val time1 = Time(0, 10)
+    val time2 = Time(23, 10)
+//    val time2 = Date().currentTime()
+    println(time1.toMillis() - time2.toMillis())
 }
