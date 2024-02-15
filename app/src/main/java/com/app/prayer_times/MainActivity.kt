@@ -16,6 +16,7 @@ import androidx.core.content.res.ResourcesCompat
 import androidx.lifecycle.lifecycleScope
 import com.app.prayer_times.data.core.PTManager
 import com.app.prayer_times.data.preferences.UserPrefs
+import com.app.prayer_times.ui.custom.PrayerCard
 import kotlinx.coroutines.launch
 import com.app.prayer_times.utils.datetime.Date
 import com.app.prayer_times.utils.datetime.Time
@@ -125,15 +126,15 @@ class MainActivity : ComponentActivity() {
         //Bind actions to next/prev buttons
         val nextDayBtn: ImageButton = findViewById(R.id.nextDayBtn)
         val prevDayBtn: ImageButton = findViewById(R.id.prevDayBtn)
-        val todayBtn = findViewById<Button>(R.id.todayBtn)
+//        val todayBtn = findViewById<Button>(R.id.todayBtn)
 
         hasInternetConnection("Check internet connection")
 
         nextDayBtn.setOnClickListener { showPrayerTimes(1) }
         prevDayBtn.setOnClickListener { showPrayerTimes(-1) }
-        todayBtn.setOnClickListener {
-            showToast("Today Button Pressed")
-        }
+//        todayBtn.setOnClickListener {
+//            showToast("Today Button Pressed")
+//        }
 
         showPrayerTimes(0)
     }
@@ -196,18 +197,22 @@ class MainActivity : ComponentActivity() {
 
         for (i in 0..< dayTimes.size) {
             val prayerTitle = ptManager.prayerTitles[i]
-            val btn = createButtonItem(
-                "${prayerTitle}: ${dayTimes[i]}",
+            val card = PrayerCard(
+                this,
+                prayerTitle,
+                dayTimes[i].toString(),
+                targetIndex == i,
                 alarmPrefs[i]
-//                targetIndex == i
             )
-            btn.setOnClickListener {
+
+            card.notificationButton.setOnClickListener {
                 if (Permission.getNotificationPermission(this@MainActivity)) {
                     if (!userPrefs.getBool(prayerTitle, false)) {
                         userPrefs.setBool(prayerTitle, true)
-                        it.background = resources.getDrawable(R.drawable.btn_ripple_highlighted)
+                        card.setNotificationIcon(true)
 
-                        scheduler.scheduleReminder(dayTimes[i].toMillis(), prayerTitle)
+                        if (date.currentTime().timeCmp(dayTimes[i]) < 0 && date.isToday())
+                            scheduler.scheduleReminder(dayTimes[i].toMillis(), prayerTitle)
 
                         if (!userPrefs.getBool("alarms_enabled", false)) {
                             jobScheduler.scheduleJob()
@@ -216,12 +221,12 @@ class MainActivity : ComponentActivity() {
 
                     } else {
                         userPrefs.setBool(prayerTitle, false)
-                        it.background = resources.getDrawable(R.drawable.btn_ripple)
+                        card.setNotificationIcon(false)
                         scheduler.cancelReminder(prayerTitle)
                     }
                 }
             }
-            layout.addView(btn)
+            layout.addView(card)
         }
     }
 
