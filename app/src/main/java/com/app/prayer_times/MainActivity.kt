@@ -20,6 +20,8 @@ import kotlinx.coroutines.launch
 import com.app.prayer_times.utils.datetime.Date
 import com.app.prayer_times.utils.datetime.Time
 import com.app.prayer_times.utils.notifications.Notification
+import com.app.prayer_times.utils.permissions.Permission
+import com.app.prayer_times.utils.schedulers.MyJobScheduler
 import com.app.prayer_times.utils.schedulers.NotificationScheduler
 
 class MainActivity : ComponentActivity() {
@@ -30,6 +32,7 @@ class MainActivity : ComponentActivity() {
     private lateinit var notification: Notification
     private lateinit var scheduler: NotificationScheduler
     private lateinit var userPrefs: UserPrefs
+    private lateinit var jobScheduler: MyJobScheduler
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -38,6 +41,7 @@ class MainActivity : ComponentActivity() {
         notification = Notification(this)
         scheduler = NotificationScheduler(this)
         userPrefs = UserPrefs(this)
+        jobScheduler = MyJobScheduler(this)
 
         val area: String? = userPrefs.getString("user_area", null)
 
@@ -188,61 +192,36 @@ class MainActivity : ComponentActivity() {
         } else {
             -1
         }
+        val alarmPrefs: List<Boolean> = userPrefs.getBoolList(ptManager.prayerTitles, false)
 
         for (i in 0..< dayTimes.size) {
-            //TODO: Highlight button with notification enabled
             val prayerTitle = ptManager.prayerTitles[i]
             val btn = createButtonItem(
                 "${prayerTitle}: ${dayTimes[i]}",
-                targetIndex == i
+                alarmPrefs[i]
+//                targetIndex == i
             )
-//            btn.setOnClickListener {
-//                if (Permission.getNotificationPermission(this@MainActivity)) {
-//                    val currentTime = date.currentTime()
-//
-//                    val remindBefore: Int = userPrefs.getInt("remindBefore", 5)
-//                    val time = Time(dayTimes[i])
-//                    time.setEarlier(minutes = remindBefore)
-//
-//                    if (!userPrefs.getBool("alarms_enabled", false)) {
-//                        //TODO: Schedule a reminder operation here
-//                        //This should go off once a day at the end of each day.
-//                        userPrefs.setBool("alarms_enabled", true)
-//                    }
-//
-//                    //Save user alarm preferences
-//                    if (scheduler.reminderActive(prayerTitle)) {
-//                        userPrefs.setBool(prayerTitle, false)
-//                    } else {
-//                        userPrefs.setBool(prayerTitle, true)
-//                    }
-//
-//                    if (currentTime.timeCmp(time) < 0) {
-//                        val reminderScheduled = scheduler.toggleReminder(
-//                            time.toMillis(),
-//                            prayerTitle,
-//                            remindBefore
-//                        )
-//                        if (reminderScheduled)
-//                            showToast("Reminder set successfully")
-//                        else
-//                            showToast("Failed to schedule reminder")
-//                        //TODO: update notification indicator here
-//                    }
-//                }
-//            }
+            btn.setOnClickListener {
+                if (Permission.getNotificationPermission(this@MainActivity)) {
+                    if (!userPrefs.getBool(prayerTitle, false)) {
+                        userPrefs.setBool(prayerTitle, true)
+                        it.background = resources.getDrawable(R.drawable.btn_ripple_highlighted)
 
-            layout.addView(btn)
-        }
-    }
+                        scheduler.scheduleReminder(dayTimes[i].toMillis(), prayerTitle)
 
-    //TODO: Finish this
-    private fun setReminders() {
-        val prayerTitles = ptManager.prayerTitles
+                        if (!userPrefs.getBool("alarms_enabled", false)) {
+                            jobScheduler.scheduleJob()
+                            userPrefs.setBool("alarms_enabled", true)
+                        }
 
-        for (prayer in prayerTitles) {
-            if (userPrefs.getBool(prayer, false)) {
+                    } else {
+                        userPrefs.setBool(prayerTitle, false)
+                        it.background = resources.getDrawable(R.drawable.btn_ripple)
+                        scheduler.cancelReminder(prayerTitle)
+                    }
+                }
             }
+            layout.addView(btn)
         }
     }
 
