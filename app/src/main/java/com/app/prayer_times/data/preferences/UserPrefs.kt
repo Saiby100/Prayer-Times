@@ -35,7 +35,7 @@ class UserPrefs(context: Context) {
         editor.apply()
     }
 
-    fun getBoolList(keys: List<String>, default: Boolean): MutableList<Boolean> {
+    fun getBoolList(keys: List<String>, default: Boolean): List<Boolean> {
         val list: MutableList<Boolean> = mutableListOf()
 
         for (key in keys) {
