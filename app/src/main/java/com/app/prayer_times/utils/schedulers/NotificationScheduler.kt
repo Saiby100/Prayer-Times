@@ -14,29 +14,12 @@ class NotificationScheduler(private val context: Context) {
     private val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
     private val userPrefs: UserPrefs = UserPrefs(context)
 
-    fun toggleReminder(timeInMillis: Long, prayer: String): Boolean {
+    fun scheduleReminder(timeInMillis: Long, prayer: String): Boolean {
         try {
-            if (userPrefs.getBool(prayer, false)) {
-                cancelReminder(prayer)
-                userPrefs.setBool(prayer, false)
-            } else {
-                if (scheduleReminder(timeInMillis, prayer)) {
-                    userPrefs.setBool(prayer, true)
-                } else {
-                    return false
-                }
-            }
-        } catch (e: Exception) {
-            return false
-        }
-
-        return true
-    }
-    private fun scheduleReminder(timeInMillis: Long, prayer: String): Boolean {
-        try {
+            val remindBefore: Int = userPrefs.getInt("remind_before", 5)
             val alarmIntent = Intent(context, NotificationReceiver::class.java).apply {
                 putExtra("prayer", prayer)
-                putExtra("timeUntil", userPrefs.getInt("timeUntil", 5))
+                putExtra("timeUntil", remindBefore)
             }
 
             val pendingIntent = PendingIntent.getBroadcast(
@@ -45,8 +28,12 @@ class NotificationScheduler(private val context: Context) {
                 alarmIntent,
                 PendingIntent.FLAG_IMMUTABLE
             )
+
+            val time = timeInMillis - remindBefore * 60 * 1000
             if (canScheduleNotifications(alarmManager)) {
-                alarmManager.setExact(AlarmManager.RTC_WAKEUP, timeInMillis, pendingIntent)
+                alarmManager.setExact(AlarmManager.RTC_WAKEUP, time, pendingIntent)
+                Logger.logMsg("Reminder set for $prayer")
+
                 return true
             }
 
@@ -57,6 +44,7 @@ class NotificationScheduler(private val context: Context) {
     }
 
     fun scheduleAllReminders(prayerTitles: List<String>, dayTimes: List<Time>): Boolean {
+        Logger.logMsg("Schedule operation starting...")
         if (prayerTitles.size != dayTimes.size) {
             return false
         }
@@ -76,7 +64,7 @@ class NotificationScheduler(private val context: Context) {
         return true
     }
 
-    private fun cancelReminder(prayer: String) {
+    fun cancelReminder(prayer: String) {
         try {
             val alarmIntent = Intent(context, NotificationReceiver::class.java)
 
@@ -86,10 +74,11 @@ class NotificationScheduler(private val context: Context) {
                 alarmIntent,
                 PendingIntent.FLAG_IMMUTABLE
             ))
+            Logger.logMsg("Reminder cancelled for $prayer")
+
         } catch (e: Exception) {
             Logger.logErr("Failed to cancel reminder notification: $e")
         }
-
     }
 
     private fun canScheduleNotifications(alarmManager: AlarmManager): Boolean {
