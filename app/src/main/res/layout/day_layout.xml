@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/dark_blue_primary"
-    android:paddingHorizontal="32dp">
+    android:paddingHorizontal="25dp">
 
 
     <LinearLayout
@@ -34,8 +34,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="20dp"
-            android:paddingHorizontal="10dp"
-            android:paddingBottom="10dp">
+            android:padding="10dp"
+            android:background="@drawable/button_bg" >
 
             <LinearLayout
                 android:id="@+id/timesLayout"
@@ -45,19 +45,6 @@
 
             </LinearLayout>
         </ScrollView>
-
-        <Button
-            android:id="@+id/todayBtn"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textColor="@color/white"
-            android:background="@drawable/btn_ripple"
-            android:text="@string/today"
-            android:fontFamily="@font/inter_medium"
-            android:textSize="16sp"
-            android:layout_gravity="center"
-            android:elevation="0dp"
-            android:textAllCaps="false"/>
 
         <LinearLayout
             android:id="@+id/indicator"
