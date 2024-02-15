@@ -4,6 +4,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import com.app.prayer_times.data.core.PTManager
+import com.app.prayer_times.data.preferences.UserPrefs
 import com.app.prayer_times.utils.schedulers.NotificationScheduler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -14,6 +15,7 @@ class MyJobReceiver: BroadcastReceiver() {
         val scheduler = NotificationScheduler(context)
 
         val ptManager = PTManager(context)
+        UserPrefs(context).getString("user_area", null)?.let { ptManager.initArea(it) }
         val prayerTitles = ptManager.prayerTitles
 
         CoroutineScope(Dispatchers.IO).launch {
