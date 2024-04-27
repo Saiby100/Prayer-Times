@@ -9,11 +9,15 @@ class Date {
         "January", "February", "March", "April", "May", "June", "July",
         "August", "September", "October", "November", "December"
     )
+    val dayStrings: Array<String> = arrayOf(
+        "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"
+    )
 
     private val calendar: Calendar = Calendar.getInstance()
     var year: Int
     var month: Int
     var day: Int
+    var weekDay: Int
 
     private val currentDay: Int
     private val currentMonth: Int
@@ -23,6 +27,7 @@ class Date {
         year = calendar.get(Calendar.YEAR)
         month = calendar.get(Calendar.MONTH) + 1
         day = calendar.get(Calendar.DAY_OF_MONTH)
+        weekDay = calendar.get(Calendar.DAY_OF_WEEK)
 
         currentYear = year
         currentMonth = month
@@ -38,6 +43,7 @@ class Date {
         year = calendar.get(Calendar.YEAR)
         month = calendar.get(Calendar.MONTH) + 1
         day = calendar.get(Calendar.DAY_OF_MONTH)
+        weekDay = calendar.get(Calendar.DAY_OF_WEEK)
     }
 
     /**
@@ -46,6 +52,10 @@ class Date {
      */
     fun monthString(): String {
         return monthStrings[month - 1]
+    }
+
+    fun dayString(): String {
+        return dayStrings[weekDay - 1]
     }
 
     /**

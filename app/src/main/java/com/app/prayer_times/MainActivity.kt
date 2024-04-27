@@ -1,6 +1,7 @@
 package com.app.prayer_times
 
 import android.content.Context
+import android.graphics.drawable.ColorDrawable
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.os.Bundle
@@ -38,6 +39,10 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        // Set action bar
+        val actionBarColor = ContextCompat.getColor(this, R.color.dark_blue_secondary)
+        actionBar?.setBackgroundDrawable(ColorDrawable(actionBarColor))
+
         ptManager = PTManager(this, date)
         notification = Notification(this)
         scheduler = NotificationScheduler(this)
@@ -52,6 +57,7 @@ class MainActivity : ComponentActivity() {
             ptManager.initArea(area)
             initDayLayout(area)
         }
+        actionBar?.apply { title = area }
     }
 
     private fun initAreaLayout() {
@@ -120,21 +126,15 @@ class MainActivity : ComponentActivity() {
 
     private fun initDayLayout(areaString: String) {
         setContentView(R.layout.day_layout)
-        val cityTitle: TextView = findViewById(R.id.cityTitle)
-        cityTitle.text = areaString
 
         //Bind actions to next/prev buttons
         val nextDayBtn: ImageButton = findViewById(R.id.nextDayBtn)
         val prevDayBtn: ImageButton = findViewById(R.id.prevDayBtn)
-//        val todayBtn = findViewById<Button>(R.id.todayBtn)
 
         hasInternetConnection("Check internet connection")
 
         nextDayBtn.setOnClickListener { showPrayerTimes(1) }
         prevDayBtn.setOnClickListener { showPrayerTimes(-1) }
-//        todayBtn.setOnClickListener {
-//            showToast("Today Button Pressed")
-//        }
 
         showPrayerTimes(0)
     }
@@ -184,8 +184,18 @@ class MainActivity : ComponentActivity() {
         val layout = findViewById<LinearLayout>(R.id.timesLayout)
         val dateTitle = findViewById<TextView>(R.id.dateTitle)
 
-        val dateString = "${date.day}/${date.month}/${date.year}"
+        val todayBtn: Button = findViewById(R.id.todayBtn)
+        val dayText: TextView = findViewById(R.id.dayTitle)
+
+        val dateString = "${date.day} ${date.monthString()} ${date.year}"
         dateTitle.text = dateString
+
+        dayText.text = date.dayString()
+        todayBtn.text = "${date.day}"
+        todayBtn.setOnClickListener {
+            showToast("Today Button Pressed")
+        }
+
         layout.removeAllViews()
 
         val targetIndex: Int =  if (date.isToday()) {
