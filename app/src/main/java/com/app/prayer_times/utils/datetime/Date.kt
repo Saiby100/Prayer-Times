@@ -34,6 +34,15 @@ class Date {
         currentDay = day
     }
 
+    fun reset() {
+        calendar.set(currentYear, currentMonth - 1, currentDay)
+
+        year = calendar.get(Calendar.YEAR)
+        month = calendar.get(Calendar.MONTH) + 1
+        day = calendar.get(Calendar.DAY_OF_MONTH)
+        weekDay = calendar.get(Calendar.DAY_OF_WEEK)
+    }
+
     /**
      * Adds [dayVal] to the current day.
      * Month and year will update automatically if necessary.

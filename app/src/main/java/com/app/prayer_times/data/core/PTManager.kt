@@ -40,6 +40,12 @@ class PTManager (private val context: Context, startDate: Date = Date()) {
         PTScraper.setArea(area)
     }
 
+    fun setDate(newDate: Date) {
+        date.day = newDate.day
+        date.month = newDate.month
+        date.year = newDate.year
+    }
+
     /**
      * Gets all area titles available.
      * @return array of area strings.

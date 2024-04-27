@@ -127,6 +127,15 @@ class MainActivity : ComponentActivity() {
     private fun initDayLayout(areaString: String) {
         setContentView(R.layout.day_layout)
 
+        val todayBtn: Button = findViewById(R.id.todayBtn)
+        todayBtn.text = "${date.day}"
+        todayBtn.setOnClickListener {
+            if (!date.isToday()) {
+                date.reset()
+                ptManager.setDate(date)
+                showPrayerTimes(0)
+            }
+        }
         //Bind actions to next/prev buttons
         val nextDayBtn: ImageButton = findViewById(R.id.nextDayBtn)
         val prevDayBtn: ImageButton = findViewById(R.id.prevDayBtn)
@@ -184,17 +193,12 @@ class MainActivity : ComponentActivity() {
         val layout = findViewById<LinearLayout>(R.id.timesLayout)
         val dateTitle = findViewById<TextView>(R.id.dateTitle)
 
-        val todayBtn: Button = findViewById(R.id.todayBtn)
         val dayText: TextView = findViewById(R.id.dayTitle)
 
         val dateString = "${date.day} ${date.monthString()} ${date.year}"
         dateTitle.text = dateString
 
         dayText.text = date.dayString()
-        todayBtn.text = "${date.day}"
-        todayBtn.setOnClickListener {
-            showToast("Today Button Pressed")
-        }
 
         layout.removeAllViews()
 
