@@ -14,9 +14,12 @@ import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.core.content.res.ResourcesCompat
 import androidx.fragment.app.FragmentActivity
+import androidx.fragment.app.add
+import androidx.fragment.app.commit
 import androidx.lifecycle.lifecycleScope
 import com.app.prayer_times.data.core.PTManager
 import com.app.prayer_times.data.preferences.UserPrefs
+import com.app.prayer_times.fragments.AreaLayout
 import com.app.prayer_times.ui.custom.DatePicker
 import com.app.prayer_times.ui.custom.PrayerCard
 import kotlinx.coroutines.launch
@@ -50,25 +53,31 @@ class MainActivity : FragmentActivity() {
         userPrefs = UserPrefs(this)
         jobScheduler = MyJobScheduler(this)
 
-        val area: String? = userPrefs.getString("user_area", null)
+        setContentView(R.layout.fragment_container)
+        if (savedInstanceState == null) {
+            supportFragmentManager.commit {
+                setReorderingAllowed(true)
+                add<AreaLayout>(R.id.fragment_container)
+            }
+        }
 
-        if (area == null) {
-            initAreaLayout()
-        } else {
-            ptManager.initArea(area)
-            initDayLayout(area)
-        }
-        actionBar?.apply { title = area }
-        findViewById<ImageButton>(R.id.datePicker).setOnClickListener {
-            val datePicker = DatePicker()
-            datePicker.show(supportFragmentManager, "datePicker")
-        }
+//        if (area == null) {
+//            initAreaLayout()
+//        } else {
+//            ptManager.initArea(area)
+//            initDayLayout(area)
+//        }
+//        actionBar?.apply { title = area }
+//        findViewById<ImageButton>(R.id.datePicker).setOnClickListener {
+//            val datePicker = DatePicker()
+//            datePicker.show(supportFragmentManager, "datePicker")
+//        }
     }
 
     private fun initAreaLayout() {
         setContentView(R.layout.select_area_layout)
 
-        val linearLayout = findViewById<LinearLayout>(R.id.areaLayout)
+        val linearLayout = findViewById<LinearLayout>(R.id.areaList)
 
         if (!hasInternetConnection("Unable to connect to internet")) {
             //TODO: Implement retry button
