@@ -40,6 +40,7 @@
                 android:textColor="@color/white"
                 android:background="@drawable/btn_ripple_highlighted"/>
             <ImageButton
+                android:id="@+id/datePicker"
                 android:layout_width="35dp"
                 android:layout_height="35dp"
                 android:layout_marginStart="8dp"

@@ -56,6 +56,7 @@ dependencies {
     implementation("androidx.compose.ui:ui-graphics")
     implementation("androidx.compose.ui:ui-tooling-preview")
     implementation("androidx.compose.material3:material3")
+    implementation("androidx.fragment:fragment:1.7.1")
     implementation("org.jsoup:jsoup:1.11.3")
     implementation("androidx.constraintlayout:constraintlayout:2.1.4")
     implementation("com.opencsv:opencsv:5.5.2")

@@ -11,12 +11,13 @@ import android.widget.ImageButton
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
-import androidx.activity.ComponentActivity
 import androidx.core.content.ContextCompat
 import androidx.core.content.res.ResourcesCompat
+import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.lifecycleScope
 import com.app.prayer_times.data.core.PTManager
 import com.app.prayer_times.data.preferences.UserPrefs
+import com.app.prayer_times.ui.custom.DatePicker
 import com.app.prayer_times.ui.custom.PrayerCard
 import kotlinx.coroutines.launch
 import com.app.prayer_times.utils.datetime.Date
@@ -26,7 +27,7 @@ import com.app.prayer_times.utils.permissions.Permission
 import com.app.prayer_times.utils.schedulers.MyJobScheduler
 import com.app.prayer_times.utils.schedulers.NotificationScheduler
 
-class MainActivity : ComponentActivity() {
+class MainActivity : FragmentActivity() {
 
     private val date = Date()
 
@@ -58,6 +59,10 @@ class MainActivity : ComponentActivity() {
             initDayLayout(area)
         }
         actionBar?.apply { title = area }
+        findViewById<ImageButton>(R.id.datePicker).setOnClickListener {
+            val datePicker = DatePicker()
+            datePicker.show(supportFragmentManager, "datePicker")
+        }
     }
 
     private fun initAreaLayout() {
@@ -69,7 +74,6 @@ class MainActivity : ComponentActivity() {
             //TODO: Implement retry button
             return
         }
-
         lifecycleScope.launch {
             try {
                 val areaStrings: Array<String>? = ptManager.getAreaTitles()
