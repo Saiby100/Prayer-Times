@@ -19,7 +19,6 @@ class DatePicker: DialogFragment(), DatePickerDialog.OnDateSetListener {
     }
 
     override fun onDateSet(view: DatePicker?, year: Int, month: Int, dayOfMonth: Int) {
-//        Logger.logDebug("Date was set to $dayOfMonth/${month + 1}/$year")
-
+        Logger.logDebug("Date was set to $dayOfMonth/${month + 1}/$year")
     }
 }

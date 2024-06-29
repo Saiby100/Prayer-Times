@@ -12,6 +12,7 @@ import android.widget.Toast
 import androidx.lifecycle.lifecycleScope
 import com.app.prayer_times.data.core.PTManager
 import com.app.prayer_times.data.preferences.UserPrefs
+import com.app.prayer_times.ui.custom.DatePicker
 import com.app.prayer_times.ui.custom.PrayerCard
 import com.app.prayer_times.utils.datetime.Date
 import com.app.prayer_times.utils.datetime.Time
@@ -42,11 +43,11 @@ class TimesLayout : Fragment(R.layout.times_layout) {
     }
 
     private fun initLayout() {
-        setNavButtons()
+        setLayoutButtons()
         fetchNewTimes(0)
     }
 
-    private fun setNavButtons() {
+    private fun setLayoutButtons() {
         val todayButton: Button = requireView().findViewById(R.id.todayBtn)
         todayButton.text = "${date.day}"
         todayButton.setOnClickListener {
@@ -56,11 +57,17 @@ class TimesLayout : Fragment(R.layout.times_layout) {
                 fetchNewTimes(0)
             }
         }
-        val nextDayButton: ImageButton = requireView().findViewById(R.id.nextDayBtn)
-        val prevDayButton: ImageButton = requireView().findViewById(R.id.prevDayBtn)
+        requireView().findViewById<ImageButton>(R.id.datePicker).setOnClickListener {
+            val datePicker = DatePicker()
+            datePicker.show(parentFragmentManager, "datePicker")
+        }
 
-        nextDayButton.setOnClickListener { fetchNewTimes(1) }
-        prevDayButton.setOnClickListener { fetchNewTimes(-1) }
+        requireView().findViewById<ImageButton>(R.id.nextDayBtn).setOnClickListener {
+            fetchNewTimes(1)
+        }
+        requireView().findViewById<ImageButton>(R.id.prevDayBtn).setOnClickListener {
+            fetchNewTimes(-1)
+        }
     }
 
     /**

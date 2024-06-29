@@ -27,14 +27,17 @@ class AreaLayout : Fragment(R.layout.select_area_layout) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         userPrefs = UserPrefs(requireContext())
-
-        initAreaList()
+        val areaString = userPrefs.getString("user_area", null)
+        if (areaString == null) {
+            initAreaList()
+        } else {
+            handleAreaSelected(false, areaString)
+        }
     }
 
     private fun initAreaList() {
         val areaList = requireView().findViewById<LinearLayout>(R.id.areaList)
         ptManager = PTManager(requireContext(), Date())
-        Logger.logDebug("Initialised pt manager")
 
         if (!Network.hasInternetConnection(requireContext())) {
             Toast.makeText(requireContext(), "No Internet Connection", Toast.LENGTH_SHORT).show()
@@ -49,7 +52,7 @@ class AreaLayout : Fragment(R.layout.select_area_layout) {
                         button = AreaListItem(requireContext(), area)
                         button.setOnClickListener {
                             Toast.makeText(requireContext(), "$area was selected", Toast.LENGTH_SHORT).show()
-                            handleAreaSelected(area)
+                            handleAreaSelected(true, area)
                         }
                         areaList.addView(button)
                     }
@@ -62,8 +65,10 @@ class AreaLayout : Fragment(R.layout.select_area_layout) {
 
     }
 
-    private fun handleAreaSelected(areaString: String) {
-        userPrefs.setString("user_area", areaString)
+    private fun handleAreaSelected(saveArea: Boolean, areaString: String) {
+        if (saveArea) {
+            userPrefs.setString("user_area", areaString)
+        }
         //Change Fragment
         parentFragmentManager.commit {
             setReorderingAllowed(true)
