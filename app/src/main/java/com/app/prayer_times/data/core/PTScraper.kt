@@ -1,5 +1,7 @@
 package com.app.prayer_times.data.core
 
+import com.app.prayer_times.api.PTObject
+import com.app.prayer_times.utils.debug.Logger
 import kotlinx.coroutines.runBlocking
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
@@ -66,6 +68,7 @@ object PTScraper {
       val doc: Document = Jsoup.connect("$timesUrl/$year-$month").get()
       val table = doc.select("table.table-striped")
       val tableData = table.select("td")
+      val tableRows = table.select("tr")
 
       // Initialize the titles
       if (prayerTitles.size == 0) {
@@ -75,25 +78,31 @@ object PTScraper {
             for (header in tHeaders) {
                prayerTitles.add(header.text())
             }
-            // Remove first 2 titles (date and day)
-            prayerTitles.removeAt(0)
-            prayerTitles.removeAt(0)
          }
       }
 
       val timesList: MutableList<String> = mutableListOf()
 
       // Populate the times list
-      for (td in tableData) {
-         timesList.add(td.text())
-      }
+//      for (td in tableData) {
+//         timesList.add(td.text())
+//      }
+
+//      val dayTimes: MutableList<String> = mutableListOf()
+//      for (row in tableRows) {
+//         for (td in row.select("td")) {
+//            dayTimes.add(td.text())
+//         }
+//         timesList.add(PTObject(dayTimes))
+//      }
+      Logger.logDebug(tableRows.toString())
 
       // Remove date and day from times data
-      val timesListSize: Int = timesList.size
-      for (i in 0..<timesListSize step prayerTitles.size + 2) {
-         timesList.remove(tableData[i].text())
-         timesList.remove(tableData[i+1].text())
-      }
+//      val timesListSize: Int = timesList.size
+//      for (i in 0..<timesListSize step prayerTitles.size + 2) {
+//         timesList.remove(tableData[i].text())
+//         timesList.remove(tableData[i+1].text())
+//      }
 
       mutex++
       return timesList

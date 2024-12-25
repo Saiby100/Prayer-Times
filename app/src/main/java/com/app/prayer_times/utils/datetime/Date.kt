@@ -4,7 +4,7 @@ import com.app.prayer_times.utils.debug.Logger
 import java.time.LocalTime
 import java.util.Calendar
 
-class Date {
+class Date (var day: Int, var month: Int, var year: Int){
     val monthStrings: Array<String> = arrayOf(
         "January", "February", "March", "April", "May", "June", "July",
         "August", "September", "October", "November", "December"
@@ -14,19 +14,17 @@ class Date {
     )
 
     private val calendar: Calendar = Calendar.getInstance()
-    var year: Int
-    var month: Int
-    var day: Int
     var weekDay: Int
 
     private val currentDay: Int
     private val currentMonth: Int
     private val currentYear: Int
-
+    constructor(): this(
+        Calendar.getInstance().get(Calendar.DAY_OF_MONTH),
+        Calendar.getInstance().get(Calendar.MONTH) + 1,
+        Calendar.getInstance().get(Calendar.YEAR)
+    )
     init {
-        year = calendar.get(Calendar.YEAR)
-        month = calendar.get(Calendar.MONTH) + 1
-        day = calendar.get(Calendar.DAY_OF_MONTH)
         weekDay = calendar.get(Calendar.DAY_OF_WEEK)
 
         currentYear = year

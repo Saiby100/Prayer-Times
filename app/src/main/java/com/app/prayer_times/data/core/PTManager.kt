@@ -133,6 +133,7 @@ class PTManager (private val context: Context, startDate: Date = Date()) {
 
         waitForInternet()
         Logger.logMsg("Scraping new data")
+
         list = PTScraper.getPrayerTimesMonth(year, month)
 
         if (prayerTitles.size == 0) {
