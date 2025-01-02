@@ -59,6 +59,9 @@ class TimesLayout : Fragment(R.layout.times_layout) {
         }
         requireView().findViewById<ImageButton>(R.id.datePicker).setOnClickListener {
             val datePicker = DatePicker()
+//            datePicker.setOnDateSelectedListener(DatePicker.OnDateSelectedListener {
+//                override
+//            })
             datePicker.show(parentFragmentManager, "datePicker")
         }
 
